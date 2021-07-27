@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="icon" href="https://i.ibb.co/F7P1bw1/icon.png">
+	<title>Moist Meter List</title>
+
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+		integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
+</head>
+
+<body>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+		integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+		crossorigin="anonymous"></script>
+	<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+
+
+	<!-- Jumbotron (Top Banner) -->
+	<div class="jumbotron text-center p-4 m-0" style="background-image: url('https://i.ibb.co/1QtnJ7X/pattern1.png');">
+		<h1 class="display-4 text-white">Every Moist Meter</h1>
+		<p class="mb-0" style="color:rgb(219, 219, 219)"><em>"I'm comin' in here raw, no rubber"</em> -Jesus</p>
+	</div>
+
+
+	<!-- Main Table -->
+	<div class="px-1">
+		<table id="table" class="table table-striped" data-search="true" data-search-align="left">
+
+			<thead>
+				<tr>
+					<th class="d-none d-sm-table-cell" data-sortable="true" data-field="num">#</th>
+					<th class="d-none d-lg-table-cell" data-field="date" data-formatter="dateFormatter">Date</th>
+					<th data-searchable="true" data-formatter="titleFormatter" data-sortable="true"
+						data-field="title_id">Title</th>
+					<th data-sortable="true" data-field="score">Rating</th>
+				</tr>
+			</thead>
+
+		</table>
+	</div>
+	
+
+	<!-- Bottom Banner -->
+	<div class="d-flex bg-light flex-wrap justify-content-between">
+		<div class="flex-column text-center p-2">
+			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">Last Updated: Tuesday, July 20, 2021</p>
+		</div>
+		<div class="flex-column text-center p-2">
+			<p class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://docs.google.com/forms/d/e/1FAIpQLScggit1tZFNKtu0xbJKTKuDEvtCjLYFtma41gjJiQzurMvqIg/viewform?usp=sf_link">Contact</a></p>
+		</div>
+	</div>
+
+
+	<!-- Loads Data JSON and Creates Table -->
+	<script>
+		async function get_json() {
+			return await $.getJSON('./data.json');
+		}
+
+		var $table = $('#table')
+
+		$(async function() {
+			var d = await get_json();
+			
+			// Generate title/id string and number
+			for (i in d) {
+				temp_obj = d[i]
+				temp_obj.title_id = temp_obj.title + "%%%" + temp_obj.id;
+				temp_obj.num = d.length - i;
+			}
+
+			$table.bootstrapTable({ data: d });
+			
+			// Hides unscored moistmeters
+			d.forEach( function(obj) {
+				if (!obj.rated)
+					$table.bootstrapTable('hideRow', { index: d.length - obj.num } );
+				}
+			);
+		});
+	</script>
+
+
+	<!-- Formatters For Title and Date -->
+	<script>
+		function titleFormatter(value) {
+			const split_chars = "%%%"
+			let temp = value.split(split_chars);
+
+			return "<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/watch?v=" + temp[1] + "\">" + temp[0] + "</a>";
+		}
+
+		function dateFormatter(value) {
+			var d = new Date(value * 1000);
+			return ('0' + (d.getMonth() + 1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear().toString().substr(-2)
+		}
+	</script>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Form</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+        integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+</head>
+
+<body style="background-color: #00429e;">
+    <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+        crossorigin="anonymous"></script>
+
+    <!-- Main Carousel -->
+    <div class="d-flex align-self-center flex-column align-items-center">
+        <div id="main" class="carousel slide pt-3" data-interval="0" style="width: 20rem;">
+            <div id="inner" class="carousel-inner"></div>
+        </div>
+
+        <!-- Carousel Control Buttons -->
+        <div class="btn-group pt-3" role="group" aria-label="Basic example">
+
+            <button type="button" class="btn btn-secondary btn-lg" onclick="$('#main').carousel('prev')">
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    <span class="iconify" data-icon="fluent:chevron-double-left-20-filled" data-inline="flase"></span>
+                    Prev
+                </div>
+            </button>
+            <button type="button" class="btn btn-secondary btn-lg" onclick="$('#main').carousel('next')">
+                <div style="display: flex; justify-content: center; align-items: center;">
+                    Next
+                    <span class="iconify" data-icon="fluent:chevron-double-right-20-filled" data-inline="false"></span>
+
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Add Slides to Carousel -->
+    <script>
+        async function get_json(filename) {
+            var d = [
+                {
+                    "date": 1626850819,
+                    "title": "Space Jam: A New Legacy",
+                    "id": "WX0rqbLuVR8",
+                    "score": "30",
+                    "rated": false
+                },
+                {
+                    "date": 1626850819,
+                    "title": "Loki",
+                    "id": "cs45RIhUsuA",
+                    "score": "20",
+                    "rated": false
+                }
+            ]
+            return d;
+            return await $.getJSON(filename);
+        }
+
+        $(document).ready(async function () {
+            var $carousel = $('#inner');
+            var data = await get_json("./data.json");
+
+            for (i in data) {
+                var obj = data[i];
+                console.log(obj);
+
+                if (!obj.rated) {
+                    console.log("Adding Item")
+                    var tags1 = "<div class=\"carousel-item\"><div class=\"card p-2\">";
+                    var yt_embed = "<iframe src=\"https://www.youtube.com/embed/" + obj.id + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>";
+                    var tags2 = "<div class=\"card-body\">";
+
+                    var title = "<h5 class=\"card-title\">" + obj.title + "</h5>";
+                    var form = "";
+                    var tags3 = "</div></div></div>";
+
+                    $carousel.append(tags1 + yt_embed + tags2 + title + form + tags3);
+                }
+            }
+
+        });
+    </script>
+
+
+</body>
+
+</html>
