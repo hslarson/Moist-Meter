@@ -22,9 +22,10 @@
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
 
+
     <!-- Main Carousel -->
     <div class="d-flex align-self-center flex-column align-items-center">
-        <div id="main" class="carousel slide pt-3" data-interval="0" style="width: 20rem;">
+        <div id="main" class="carousel slide pt-3" data-interval="0" style="width: 24rem;">
             <div id="inner" class="carousel-inner"></div>
         </div>
 
@@ -37,64 +38,125 @@
                     Prev
                 </div>
             </button>
+
             <button type="button" class="btn btn-secondary btn-lg" onclick="$('#main').carousel('next')">
                 <div style="display: flex; justify-content: center; align-items: center;">
                     Next
                     <span class="iconify" data-icon="fluent:chevron-double-right-20-filled" data-inline="false"></span>
-
                 </div>
             </button>
         </div>
     </div>
+    
+    <script> 
+        // Adds a Normal Carousel Slide
+        function create_slide(title, id, active, embed) {
 
-    <!-- Add Slides to Carousel -->
-    <script>
+            var out = "<div class=\"carousel-item" + (active ? " active" : "") + "\">" +
+                        "<div class=\"card p-2\">" +
+                            (embed ? "<iframe src=\"https://www.youtube.com/embed/" + id + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>" : "") +
+                            "<div class=\"card-body\">" +
+                                "<h5 class=\"card-title\"><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/watch?v=" + id + "\">" + title + "<span class=\"iconify ml-2\" data-icon=\"feather:external-link\" data-inline=\"false\"></span></a></h5>" + 
+                                "<hr class=\"bg-dark\"></hr>" +
+                                "<form role=\"form\">" +
+                "<div class=\"d-flex pt-2\">" +
+                "<div class=\"input-group\">" +
+                "<input type=\"hidden\" name=\"id\" value=\"" + id + "\"></input>" +
+                "<input type=\"tel\" class=\"form-control\" name=\"score\" placeholder=\"Score\" required></input>" +
+                "<div class=\"input-group-append\"><span class=\"input-group-text\">%</span></div>" +
+                "</div>" +
+                "<button class=\"btn btn-success ml-2\" type=\"submit\">Submit</button>" +
+                "</div>" +
+                "</form>" +
+                "</div>" +
+                "</div>" +
+                "</div>";
+
+            return out;
+        }
+
+        // Adds a Placeholder Slide
+        function create_placeholder_slide(active) {
+            var out = "<div class=\"carousel-item" + (active ? " active" : "") + "\">" +
+                        "<div class=\"card p-2\">" + 
+                            "<img class=\"card-img-top\" src=\"https://i.ibb.co/jT1vN1H/woo.gif\" alt=\"Failed To Load Image\">" +
+                            "<div class=\"card-body\">" +
+                                "<h5 class=\"card-title\">All Done!</h5>" +
+                                "<hr class=\"bg-dark\"></hr>" +
+                                "<p class=\"card-text\">There are no more Moist Meters to rate, good job!</p>" +
+                            "</div>" +
+                        "</div>" +
+                    "</div>";
+            
+            $('#inner').append(out);
+        }
+
+        // Gets the data.json File
         async function get_json(filename) {
-            var d = [
-                {
-                    "date": 1626850819,
-                    "title": "Space Jam: A New Legacy",
-                    "id": "WX0rqbLuVR8",
-                    "score": "30",
-                    "rated": false
-                },
-                {
-                    "date": 1626850819,
-                    "title": "Loki",
-                    "id": "cs45RIhUsuA",
-                    "score": "20",
-                    "rated": false
-                }
-            ]
-            return d;
             return await $.getJSON(filename);
         }
 
+        // Deletes the Active Slide
+        async function delActiveSlide() {
+
+            var $carousel = $('#main');
+            var active = $carousel.find('.carousel-item.active');
+            
+            if ($('#main > .carousel-inner > .carousel-item').length <= 1) {
+                create_placeholder_slide(false);
+            }
+
+            $carousel.carousel('next');
+            $carousel.on('slid.bs.carousel', function() {
+                active.remove();
+            });
+        }
+    
+        // Adds Slides to Carousel
         $(document).ready(async function () {
+
             var $carousel = $('#inner');
-            var data = await get_json("./data.json");
+            var data = await get_json("../.data.json");
 
+            var l = 0;
+            for (i in data) { if (!data[i].rated) {l+=1;} }
+            var embed = l <= 10;
+
+            var first = true;
             for (i in data) {
+                
                 var obj = data[i];
-                console.log(obj);
-
                 if (!obj.rated) {
-                    console.log("Adding Item")
-                    var tags1 = "<div class=\"carousel-item\"><div class=\"card p-2\">";
-                    var yt_embed = "<iframe src=\"https://www.youtube.com/embed/" + obj.id + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>";
-                    var tags2 = "<div class=\"card-body\">";
-
-                    var title = "<h5 class=\"card-title\">" + obj.title + "</h5>";
-                    var form = "";
-                    var tags3 = "</div></div></div>";
-
-                    $carousel.append(tags1 + yt_embed + tags2 + title + form + tags3);
+                    $carousel.append(create_slide(obj.title, obj.id, first, embed));
+                    if (first) {first=false;}
                 }
             }
 
+            if (first) { create_placeholder_slide(true); }
+            else {
+                // Handles Form Submissions
+                $("form").submit(async function (form) {
+                    form.preventDefault();
+
+                    $.ajax({
+                        url: './rate.php',
+                        type: 'post',
+                        data: $(form.target).serialize(),
+
+                        success: async function (d, t, xhr) {
+                            console.log("Success: ");
+                            console.log(xhr.responseJSON);
+
+                            await delActiveSlide();
+                        },
+                        error: async function (req, err) {
+                            console.log("Error: " + err);
+                        }
+                    });
+                });
+            }
         });
     </script>
-
 
 </body>
 

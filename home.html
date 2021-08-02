@@ -43,7 +43,7 @@
 					<th class="d-none d-lg-table-cell" data-field="date" data-formatter="dateFormatter">Date</th>
 					<th data-searchable="true" data-formatter="titleFormatter" data-sortable="true"
 						data-field="title_id">Title</th>
-					<th data-sortable="true" data-field="score">Rating</th>
+					<th data-sortable="true" data-field="score" data-formatter="scoreFormatter">Rating</th>
 				</tr>
 			</thead>
 
@@ -54,10 +54,10 @@
 	<!-- Bottom Banner -->
 	<div class="d-flex bg-light flex-wrap justify-content-between">
 		<div class="flex-column text-center p-2">
-			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">Last Updated: Tuesday, July 20, 2021</p>
+			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">last_update=1627881051</p>
 		</div>
 		<div class="flex-column text-center p-2">
-			<p class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://docs.google.com/forms/d/e/1FAIpQLScggit1tZFNKtu0xbJKTKuDEvtCjLYFtma41gjJiQzurMvqIg/viewform?usp=sf_link">Contact</a></p>
+			<p id="last_update" class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://docs.google.com/forms/d/e/1FAIpQLScggit1tZFNKtu0xbJKTKuDEvtCjLYFtma41gjJiQzurMvqIg/viewform?usp=sf_link">Contact</a></p>
 		</div>
 	</div>
 
@@ -65,35 +65,45 @@
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
 		async function get_json() {
-			return await $.getJSON('./data.json');
+			return await $.getJSON('./.data.json');
 		}
 
 		var $table = $('#table')
 
 		$(async function() {
 			var d = await get_json();
-			
+			var out = [];
+
 			// Generate title/id string and number
 			for (i in d) {
-				temp_obj = d[i]
-				temp_obj.title_id = temp_obj.title + "%%%" + temp_obj.id;
-				temp_obj.num = d.length - i;
-			}
+				if (!d[i].rated) continue;
 
-			$table.bootstrapTable({ data: d });
+				out.push({
+					"num" : d.length - i,
+					"date" : d[i].date,
+					"title_id" : d[i].title + "%%%" + d[i].id,
+					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score
+				});
+			}
 			
-			// Hides unscored moistmeters
-			d.forEach( function(obj) {
-				if (!obj.rated)
-					$table.bootstrapTable('hideRow', { index: d.length - obj.num } );
-				}
-			);
+			console.log(out);
+			$table.bootstrapTable({ data: out });
+		});
+
+		$(function() {
+			var substr = $("#last_update").text().replace("last_update=", "");
+			$("#last_update").html( "Last Updated: " + dateFormatter(substr) );
 		});
 	</script>
 
 
 	<!-- Formatters For Title and Date -->
 	<script>
+		function dateFormatter(value) {
+			var d = new Date(value * 1000);
+			return ('0' + (d.getMonth() + 1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear().toString().substr(-2)
+		}
+
 		function titleFormatter(value) {
 			const split_chars = "%%%"
 			let temp = value.split(split_chars);
@@ -101,9 +111,8 @@
 			return "<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/watch?v=" + temp[1] + "\">" + temp[0] + "</a>";
 		}
 
-		function dateFormatter(value) {
-			var d = new Date(value * 1000);
-			return ('0' + (d.getMonth() + 1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear().toString().substr(-2)
+		function scoreFormatter(value) {
+			return value.replace("000", "");
 		}
 	</script>
 
