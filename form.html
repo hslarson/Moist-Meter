@@ -47,7 +47,59 @@
             </button>
         </div>
     </div>
+
+
+
+    <select class="form-control">
+        <option id="all" selected>No Filter</option>>
+        <option id="mov">Movies</option>
+        <option id="vg">Video Games</option>
+        <option id="tv">TV Shows</option>
+    </select>
+
+
+
+    <div class="input-group">
+    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">Filter</button>
+    <div class="dropdown-menu">
+        <a class="dropdown-item" href="#" onclick="filterBy('all')">No Filter</a>
+        <div role="separator" class="dropdown-divider"></div>
+        <a class="dropdown-item" href="#" onclick="filterBy('Movies')">Movies</a>
+        <a class="dropdown-item" href="#" onclick="filterBy('TV Shows')">TV Shows</a>
+        <a class="dropdown-item" href="#" onclick="filterBy('Video Games')">Video Games</a>
+        <a class="dropdown-item" href="#" onclick="filterBy('Other')">Other</a>
+    </div>
+    </div>
+
+    <script>
+        function filterBy(filter) {
+            console.log("Filter By:");
+            console.log(filter);
+        }
+
+        $(function(){
+            $('select').alwaysChange(function(val){
+                console.log(val);
+            });
+        });
+
+        $.fn.alwaysChange = function(callback){
+            return this.filter('select').each( function() {
+                var elem = this;
+                var $this = $(this);
+            
+                $this.change(function() {
+                    callback($this.val());
+                }).focus(function( ){
+                    elem.blur();
+                });
+            });
+        }
+    </script>
     
+
+
+
     <script> 
         // Adds a Normal Carousel Slide
         function create_slide(title, id, active, embed) {
@@ -60,8 +112,9 @@
                                 "<hr class=\"bg-dark\"></hr>" +
                                 "<form role=\"form\">" +
                 "<div class=\"d-flex pt-2\">" +
-                "<div class=\"input-group\">" +
                 "<input type=\"hidden\" name=\"id\" value=\"" + id + "\"></input>" +
+                "<div class=\"input-group\">" +
+                
                 "<input type=\"tel\" class=\"form-control\" name=\"score\" placeholder=\"Score\" required></input>" +
                 "<div class=\"input-group-append\"><span class=\"input-group-text\">%</span></div>" +
                 "</div>" +

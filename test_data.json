@@ -1,0 +1,26 @@
+[
+    {
+        "date": 1627837212,
+        "title": "The Green Knight",
+        "id": "Rmdcm2vmH8A",
+        "category" : "Video Games",
+        "score": "80",
+        "rated": true
+    },
+    {
+        "date": 1627404814,
+        "title": "Old",
+        "id": "4k-gVwJufUA",
+        "category" : "Movies",
+        "score": "60",
+        "rated": true
+    },
+    {
+        "date": 1626618999,
+        "title": "Space Jam: A New Legacy",
+        "category" : "Movies",
+        "id": "WX0rqbLuVR8",
+        "score": "25",
+        "rated": true
+    }
+]

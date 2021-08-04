@@ -32,17 +32,36 @@
 		<p class="mb-0" style="color:rgb(219, 219, 219)"><em>"I'm comin' in here raw, no rubber"</em> -Jesus</p>
 	</div>
 
+	<!-- Toolbar -->
+	<div id="tableToolbar" class="d-flex flex-wrap justify-content-between align-items-center">
+
+		<div class="flex-column">
+			<input class="my-auto form-control" type="text" id="searchBox" placeholder="Search"/>
+		</div>
+
+		<div class="flex-column"></div>
+			<button class="my-auto btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" id="tableFilter">Categories</button>
+			<div class="dropdown-menu">
+				<a class="dropdown-item" href="#" onclick="filterBy('All')">All</a>
+				<div role="separator" class="dropdown-divider"></div>
+				<a class="dropdown-item" href="#" onclick="filterBy('Movies')">Movies</a>
+				<a class="dropdown-item" href="#" onclick="filterBy('TV Shows')">TV Shows</a>
+				<a class="dropdown-item" href="#" onclick="filterBy('Video Games')">Video Games</a>
+				<a class="dropdown-item" href="#" onclick="filterBy('Other')">Other</a>
+			</div>
+		</div>
+	</div>
 
 	<!-- Main Table -->
 	<div class="px-1">
-		<table id="table" class="table table-striped" data-search="true" data-search-align="left">
+		<table id="table" class="table table-striped" data-search="true" data-custom-search="mySearch" data-search-selector="#searchBox" data-toolbar="#tableToolbar">
 
 			<thead>
 				<tr>
 					<th class="d-none d-sm-table-cell" data-sortable="true" data-field="num">#</th>
 					<th class="d-none d-lg-table-cell" data-field="date" data-formatter="dateFormatter">Date</th>
-					<th data-searchable="true" data-formatter="titleFormatter" data-sortable="true"
-						data-field="title_id">Title</th>
+					<th data-visible="false" data-field="category"></th>
+					<th data-searchable="true" data-formatter="titleFormatter" data-sortable="true" data-field="title_id">Title</th>
 					<th data-sortable="true" data-field="score" data-formatter="scoreFormatter">Rating</th>
 				</tr>
 			</thead>
@@ -64,11 +83,45 @@
 
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
-		async function get_json() {
-			return await $.getJSON('./.data.json');
+
+		function titleSearch(data, search_target) {
+			if (!search_target.length) { return data; }
+			else { return data.filter(
+				function (row) {
+					var search_str = String(row.title_id).slice(0, String(row.title_id).indexOf("%%%"));
+					return search_str.toLowerCase().includes( search_target.toLowerCase() );
+				}
+			)}
 		}
 
-		var $table = $('#table')
+		function filterSearch(data, filter_target) {
+			if ('category' in filter_target) {
+				var filter_val = filter_target['category'];
+				if (filter_val == "All")
+					return data;
+				else
+					return data.filter( function(row) { return row.category == filter_val; })
+			}
+		}
+
+		function mySearch(data, text, colFilter) {
+			
+			if (typeof colFilter === 'undefined')
+				return titleSearch(data, text);
+			else
+				return filterSearch(data, colFilter)
+		}
+
+		async function filterBy(val) {
+			
+			$('#tableFilter').html((val == "All" ? "Categories" : val));	
+			$("#table").bootstrapTable('filterBy', {"category" : val});
+		}
+
+		async function get_json() {
+			return await $.getJSON('./test_data.json');
+			//return await $.getJSON('./.data.json');
+		}
 
 		$(async function() {
 			var d = await get_json();
@@ -81,19 +134,21 @@
 				out.push({
 					"num" : d.length - i,
 					"date" : d[i].date,
+					"category" : d[i].category,
 					"title_id" : d[i].title + "%%%" + d[i].id,
 					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score
 				});
 			}
 			
-			console.log(out);
-			$table.bootstrapTable({ data: out });
+			$('#table').bootstrapTable({ data: out });
+			$(".bs-bars.float-left").first().removeClass('float-left');
 		});
 
 		$(function() {
 			var substr = $("#last_update").text().replace("last_update=", "");
 			$("#last_update").html( "Last Updated: " + dateFormatter(substr) );
 		});
+
 	</script>
 
 
@@ -116,7 +171,9 @@
 		}
 	</script>
 
+	<script>
 
+	</script>
 
 </body>
 
