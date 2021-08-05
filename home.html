@@ -2,21 +2,32 @@
 <html lang="en">
 
 <head>
-	<!-- Required meta tags -->
+	<!-- Basic Meta Tags -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 	<link rel="icon" href="https://i.ibb.co/F7P1bw1/icon.png">
 	<title>Moist Meter List</title>
 
+	<!-- Open Graph Meta Tags -->
+	<meta property="og:title" content="Moist Meter List" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="http://www.moistmeter.42web.io" />
+	<meta property="og:description" content="A comprehensive list of every Moist Meter produced by the legendary Charles White." />
 
+	<meta property="og:image" content="https://i.ibb.co/7VjfB2Q/drop-icon.png" />
+	<meta property="og:image:type" content="image/png" />
+	<meta property="og:image:width" content="144" />
+	<meta property="og:image:height" content="144" />
+	<meta property="og:image:alt" content="Water Drop Icon" />
+
+	<!-- Apple Icons -->
+	<link rel="apple-touch-icon" sizes="144x144" href="https://i.ibb.co/7VjfB2Q/drop-icon.png" />
+
+	<!-- Scripts -->
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
 		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
-		integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
-</head>
 
-<body>
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
@@ -24,8 +35,10 @@
 		integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
 		crossorigin="anonymous"></script>
 	<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+</head>
 
 
+<body>
 	<!-- Jumbotron (Top Banner) -->
 	<div class="jumbotron text-center p-4 m-0" style="background-image: url('https://i.ibb.co/1QtnJ7X/pattern1.png');">
 		<h1 class="display-4 text-white">Every Moist Meter</h1>
@@ -34,13 +47,11 @@
 
 	<!-- Toolbar -->
 	<div id="tableToolbar" class="d-flex flex-wrap justify-content-between align-items-center">
-
 		<div class="flex-column">
-			<input class="my-auto form-control" type="text" id="searchBox" placeholder="Search"/>
+			<input class="my-2 form-control" type="text" id="searchBox" placeholder="Search"/>
 		</div>
-
 		<div class="flex-column"></div>
-			<button class="my-auto btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" id="tableFilter">Categories</button>
+			<button class="my-2 btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" id="tableFilter">Categories</button>
 			<div class="dropdown-menu">
 				<a class="dropdown-item" href="#" onclick="filterBy('All')">All</a>
 				<div role="separator" class="dropdown-divider"></div>
@@ -55,7 +66,6 @@
 	<!-- Main Table -->
 	<div class="px-1">
 		<table id="table" class="table table-striped" data-search="true" data-custom-search="mySearch" data-search-selector="#searchBox" data-toolbar="#tableToolbar">
-
 			<thead>
 				<tr>
 					<th class="d-none d-sm-table-cell" data-sortable="true" data-field="num">#</th>
@@ -69,11 +79,10 @@
 		</table>
 	</div>
 	
-
 	<!-- Bottom Banner -->
 	<div class="d-flex bg-light flex-wrap justify-content-between">
 		<div class="flex-column text-center p-2">
-			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">last_update=1627881051</p>
+			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">last_update=1628139058</p>
 		</div>
 		<div class="flex-column text-center p-2">
 			<p id="last_update" class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://docs.google.com/forms/d/e/1FAIpQLScggit1tZFNKtu0xbJKTKuDEvtCjLYFtma41gjJiQzurMvqIg/viewform?usp=sf_link">Contact</a></p>
@@ -83,7 +92,7 @@
 
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
-
+		// Search Data by Text
 		function titleSearch(data, search_target) {
 			if (!search_target.length) { return data; }
 			else { return data.filter(
@@ -94,6 +103,7 @@
 			)}
 		}
 
+		// Filter Data
 		function filterSearch(data, filter_target) {
 			if ('category' in filter_target) {
 				var filter_val = filter_target['category'];
@@ -104,30 +114,30 @@
 			}
 		}
 
+		// A Custom Search Function
 		function mySearch(data, text, colFilter) {
-			
-			if (typeof colFilter === 'undefined')
-				return titleSearch(data, text);
-			else
-				return filterSearch(data, colFilter)
+			if (typeof colFilter !== 'undefined')
+				data = filterSearch(data, colFilter);
+				
+			return titleSearch(data, text);
 		}
 
+		// A Callback Function for the Category Dropdown
 		async function filterBy(val) {
-			
 			$('#tableFilter').html((val == "All" ? "Categories" : val));	
 			$("#table").bootstrapTable('filterBy', {"category" : val});
 		}
 
+		// Gets the Data File from the Server
 		async function get_json() {
-			return await $.getJSON('./test_data.json');
-			//return await $.getJSON('./.data.json');
+			return await $.getJSON('./.data.json');
 		}
 
+		// Generates the Main Table
 		$(async function() {
 			var d = await get_json();
 			var out = [];
 
-			// Generate title/id string and number
 			for (i in d) {
 				if (!d[i].rated) continue;
 
@@ -141,18 +151,17 @@
 			}
 			
 			$('#table').bootstrapTable({ data: out });
-			$(".bs-bars.float-left").first().removeClass('float-left');
+			$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
 		});
 
+		// Replace Epoch Time with Formatted Date
 		$(function() {
 			var substr = $("#last_update").text().replace("last_update=", "");
 			$("#last_update").html( "Last Updated: " + dateFormatter(substr) );
 		});
-
 	</script>
 
-
-	<!-- Formatters For Title and Date -->
+	<!-- Formatters For Date, Title, and Score -->
 	<script>
 		function dateFormatter(value) {
 			var d = new Date(value * 1000);
@@ -170,11 +179,5 @@
 			return value.replace("000", "");
 		}
 	</script>
-
-	<script>
-
-	</script>
-
 </body>
-
 </html>

@@ -5,23 +5,21 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="icon" href="https://i.ibb.co/F7P1bw1/icon.png">
     <title>Form</title>
 
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
-        integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
-
-</head>
-
-<body style="background-color: #00429e;">
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">    
     <script src="https://code.iconify.design/1/1.0.7/iconify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
         crossorigin="anonymous"></script>
+</head>
 
+
+<body style="background-color: #00429e;">
 
     <!-- Main Carousel -->
     <div class="d-flex align-self-center flex-column align-items-center">
@@ -48,100 +46,85 @@
         </div>
     </div>
 
-
-
-    <select class="form-control">
-        <option id="all" selected>No Filter</option>>
-        <option id="mov">Movies</option>
-        <option id="vg">Video Games</option>
-        <option id="tv">TV Shows</option>
-    </select>
-
-
-
-    <div class="input-group">
-    <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">Filter</button>
-    <div class="dropdown-menu">
-        <a class="dropdown-item" href="#" onclick="filterBy('all')">No Filter</a>
-        <div role="separator" class="dropdown-divider"></div>
-        <a class="dropdown-item" href="#" onclick="filterBy('Movies')">Movies</a>
-        <a class="dropdown-item" href="#" onclick="filterBy('TV Shows')">TV Shows</a>
-        <a class="dropdown-item" href="#" onclick="filterBy('Video Games')">Video Games</a>
-        <a class="dropdown-item" href="#" onclick="filterBy('Other')">Other</a>
+    <!-- Template for Regular Slide -->
+    <div id="slide-template" class="d-none">
+        <div class="carousel-item">
+            <div class="card p-2">
+                <iframe src="#" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                <div class="card-body">
+                    <h5 class="card-title"><a target="_blank" rel="noopener noreferrer" href="#">TITLE_HERE</a></h5>
+                    <hr class="mb-2" style="background-color: lightgrey"></hr>
+                    <form role="form">
+                        <div class="d-flex pt-2">
+                            <div class="flex-column" style="width: 100%;">
+                                <input id="video_id" type="hidden" name="id" value="ID_HERE"></input>
+                                <div class="input-group">
+                                    <input type="tel" class="form-control" name="score" placeholder="Score" required></input>
+                                    <div class="input-group-append"><span class="input-group-text">%</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex mt-2">
+                            <div class="flex-column" style="width: 100%;">
+                                <select class="form-control" name="category" required>
+                                    <option val="Movies">Movies</option>
+                                    <option val="Video Games">Video Games</option>
+                                    <option val="TV Shows">TV Shows</option>
+                                    <option val="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="flex-column">
+                                <button class="btn btn-success ml-2" type="submit">Submit</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <!-- Template for Placeholder Slide -->
+    <div id="placeholder-template" class="d-none">
+        <div class="carousel-item">
+            <div class="card p-2">
+                <img class="card-img-top" src="https://i.ibb.co/jT1vN1H/woo.gif" alt="Failed To Load Image">
+                <div class="card-body">
+                    <h5 class="card-title">All Done!</h5>
+                    <hr class="bg-dark"></hr>
+                    <p class="card-text">There are no more Moist Meters to rate, good job!</p>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <script>
-        function filterBy(filter) {
-            console.log("Filter By:");
-            console.log(filter);
-        }
-
-        $(function(){
-            $('select').alwaysChange(function(val){
-                console.log(val);
-            });
-        });
-
-        $.fn.alwaysChange = function(callback){
-            return this.filter('select').each( function() {
-                var elem = this;
-                var $this = $(this);
-            
-                $this.change(function() {
-                    callback($this.val());
-                }).focus(function( ){
-                    elem.blur();
-                });
-            });
-        }
-    </script>
-    
-
-
 
     <script> 
         // Adds a Normal Carousel Slide
         function create_slide(title, id, active, embed) {
+            
+            var $template = $('#slide-template');
+            
+            if (active) $template.find(".carousel-item").addClass("active");
+            else $template.find(".carousel-item").removeClass("active");
+            
+            if (embed)  $template.find("iframe").attr("src", "https://www.youtube.com/embed/" + id).removeClass("d-none");
+            else $template.find("iframe").addClass("d-none");
 
-            var out = "<div class=\"carousel-item" + (active ? " active" : "") + "\">" +
-                        "<div class=\"card p-2\">" +
-                            (embed ? "<iframe src=\"https://www.youtube.com/embed/" + id + "\" frameborder=\"0\" allow=\"accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture\" allowfullscreen></iframe>" : "") +
-                            "<div class=\"card-body\">" +
-                                "<h5 class=\"card-title\"><a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/watch?v=" + id + "\">" + title + "<span class=\"iconify ml-2\" data-icon=\"feather:external-link\" data-inline=\"false\"></span></a></h5>" + 
-                                "<hr class=\"bg-dark\"></hr>" +
-                                "<form role=\"form\">" +
-                "<div class=\"d-flex pt-2\">" +
-                "<input type=\"hidden\" name=\"id\" value=\"" + id + "\"></input>" +
-                "<div class=\"input-group\">" +
-                
-                "<input type=\"tel\" class=\"form-control\" name=\"score\" placeholder=\"Score\" required></input>" +
-                "<div class=\"input-group-append\"><span class=\"input-group-text\">%</span></div>" +
-                "</div>" +
-                "<button class=\"btn btn-success ml-2\" type=\"submit\">Submit</button>" +
-                "</div>" +
-                "</form>" +
-                "</div>" +
-                "</div>" +
-                "</div>";
-
-            return out;
+            $template.find("a").attr("href", "https://www.youtube.com/watch?v=" + id).html(title + "<span class=\"iconify ml-2\" data-icon=\"feather:external-link\" data-inline=\"false\"></span></a>");
+            $template.find("#video_id").attr("value", id);
+            
+            console.log($template.html());
+            return $template.html();
         }
 
         // Adds a Placeholder Slide
         function create_placeholder_slide(active) {
-            var out = "<div class=\"carousel-item" + (active ? " active" : "") + "\">" +
-                        "<div class=\"card p-2\">" + 
-                            "<img class=\"card-img-top\" src=\"https://i.ibb.co/jT1vN1H/woo.gif\" alt=\"Failed To Load Image\">" +
-                            "<div class=\"card-body\">" +
-                                "<h5 class=\"card-title\">All Done!</h5>" +
-                                "<hr class=\"bg-dark\"></hr>" +
-                                "<p class=\"card-text\">There are no more Moist Meters to rate, good job!</p>" +
-                            "</div>" +
-                        "</div>" +
-                    "</div>";
             
-            $('#inner').append(out);
+            var $template = $('#placeholder-template');
+            if (active) $template.find(".carousel-item").addClass("active");
+            else $template.find(".carousel-item").removeClass("active");
+            
+            console.log($template.html());
+            $('#inner').append($template.html());
         }
 
         // Gets the data.json File
@@ -174,20 +157,21 @@
             var l = 0;
             for (i in data) { if (!data[i].rated) {l+=1;} }
             var embed = l <= 10;
+            console.log(embed);
 
             var first = true;
             for (i in data) {
                 
                 var obj = data[i];
                 if (!obj.rated) {
-                    $carousel.append(create_slide(obj.title, obj.id, first, embed));
+                    $carousel.append( create_slide(obj.title, obj.id, first, embed) );
                     if (first) {first=false;}
                 }
             }
-
             if (first) { create_placeholder_slide(true); }
-            else {
-                // Handles Form Submissions
+            
+            // Add Handler for Form Submissions
+            else {    
                 $("form").submit(async function (form) {
                     form.preventDefault();
 
@@ -210,7 +194,5 @@
             }
         });
     </script>
-
 </body>
-
 </html>
