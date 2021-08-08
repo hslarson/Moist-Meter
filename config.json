@@ -1,0 +1,13 @@
+{
+	"pushover_settings" : {
+		"allow_pushover_notifications" : true
+	},
+	"poll_settings" : {
+		"poll_frequency_seconds" : 3600,
+		"last_poll" : 1628413297.8172534
+	},
+	"audit_settings" : {
+		"audit_frequency_seconds" : 43200,
+		"last_audit" : 1627805370
+	}
+}

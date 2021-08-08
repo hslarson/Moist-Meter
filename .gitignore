@@ -1,0 +1,9 @@
+
+# Hide the secrets file
+secrets.*
+
+# Hide Backups
+Data_Backups/
+
+# Hide Junk
+__pycache__/
