@@ -246,7 +246,7 @@ class DataTools():
 	def __sort(contents):
 		
 		lindex = 0
-		altered = 0
+		altered = False
 		end = len(contents)
 		while (lindex < end):
 			
@@ -256,17 +256,16 @@ class DataTools():
 			rindex = lindex + 1
 			while (rindex < end):
 				if (contents[rindex]["date"] > highest_date):
-
-					# Swap elements if necessary
-					temp = contents[rindex]
-					contents[lindex] = temp
-					contents[rindex] = contents[lindex]
-
-					highest_date = contents[lindex]["date"]
+					highest_date = contents[rindex]["date"]
 					highest_index = rindex
-
 					altered = True
+			
 				rindex += 1
+			
+			# Swap elements if necessary
+			temp = contents[highest_index]
+			contents[highest_index] = contents[lindex]
+			contents[lindex] = temp
 			lindex += 1
 
 		return altered
