@@ -24,7 +24,6 @@ class FileOps():
 			file.close()
 
 
-
 	# A Special Destructor to Make Sure the FTP Script Gets Deleted
 	def __del__(self):
 		FileOps.delete_file(FileOps.FTP_SCRIPT_NAME)
@@ -105,38 +104,33 @@ class DataTools():
 			json.dump(config, file, indent='\t', separators=(',',' : '))
 			file.close()
 
+		FileOps.delete_file(".data.json")
+
 
 	def poll():
 
 		if time.time() > DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
 
-			# Pull Youtube Data
+			# Pull YouTube Data
 			uploads = DataTools.yt_obj.pull_uploads(after=DataTools.poll_settings["last_poll"])
 			moist_meters = DataTools.__filter_moist_meters(uploads)
-
 
 			# If a New Moist Meter is Found, Append It To the List
 			if (len(moist_meters)):
 
 				# Load the Data File
-				FileOps.pull()
-				with open(FileOps.SOURCE_DIR + ".data.json", 'r') as file:
-					contents = json.load(file)
-					file.close()
+				contents = DataTools.__load_data()
 
 				# Iterate Over the New Moist Meters
+				notifications = []
 				for title, id, date in reversed(moist_meters):
-
-					print((title, id, date))
 
 					# Filter Duplicates
 					known = False
 					for obj in contents:
-						print("- " + str((obj["title"], obj["id"], obj["date"])))
 						if obj["date"] <= date:
-							
-							known = (obj["date"] == date)
-							if (known): print("Known")
+
+							if obj["date"] != date: notifications.append(obj)	
 							break
 					
 					# Insert a New Object into the List
@@ -154,14 +148,12 @@ class DataTools():
 				# Upload the Updated Config File
 				with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
 					json.dump(contents, file, indent='\t', separators=(',',' : '))
-					file.close()
-				
+					file.close()	
 				FileOps.put()
-				FileOps.delete_file(".data.json")
 
 				# Send Pushover Notifications
-				for title, id, _ in reversed(moist_meters):
-					DataTools.__send_notification(title, id)
+				for title, id, _ in notifications:
+					DataTools.__send_notification(f"New Moist Meter: {title}", id)
 			
 			# Update Last Poll Variable
 			DataTools.poll_settings["last_poll"] = time.time()
@@ -169,15 +161,66 @@ class DataTools():
 			return
 
 		
-
-
 	def audit():
-		pass
+
+		# Load the Data File
+		contents = DataTools.__load_data()
+
+		# Pull Uploads
+		last_date = contents[:-1]["date"]
+		uploads = DataTools.yt_obj.pull_uploads(after=last_date)
+
+		# Iterate Over Uploads
+		altered = False
+		notifications = []
+		for index, obj in enumerate(contents):
+			
+			# Check For Duplicates in .data.json
+			for i, o in enumerate(contents[index+1:]):
+				if obj["id"] == o["id"]:
+					print("Found Duplicate. Id for object\n\t" + obj + "\nmatches the id for\n\t" + o)
+					notifications.append("Found Duplicate. Id for object\n\t" + obj + "\nmatches the id for\n\t" + o)
+					del contents[index + i + 1]
+					altered = True
+
+			# Find the Video with Matching Upload Timestamp from Uploads
+			for title, id, date in uploads:
+				if date == obj["date"]:
+
+					# Compare Title
+					if title != obj["title"]:
+						print("Title Changed: " + str(obj["title"]) + " -> " + str(title))
+						notifications.append("Title Changed: " + str(obj["title"]) + " -> " + str(title))
+						obj["title"] = title
+						altered = True
+
+					# Compare ID
+					if id != obj["id"]:
+						print("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id))
+						notifications.append("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id))
+						obj["id"] = id
+						altered = True
+
+		# Sort the List (Newest -> Oldest)
+		if (DataTools.__sort(contents)):
+			altered = True
 		
+		if altered:
+			# Upload the File if Any Changes Were Made
+			with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
+				json.dump(contents, file, indent='\t', separators=(',',' : '))
+				file.close()	
+			FileOps.put()
 
-	def edit_entry():
-		pass
+			# Send Notifications
+			for msg in notifications:
+				DataTools.__send_notification(msg)
+		
+		# Back Up the Data File
+		DataTools.back_up()
 
+
+	# Creates a Local Copy of the .data.json
 	def back_up():
 		
 		temp = FileOps()
@@ -190,7 +233,7 @@ class DataTools():
 		print("rename " + backups_folder + ".data.json" + " backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
 		os.system("rename " + backups_folder + ".data.json" + " backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
 		
-		# Cound Backups in Dir and Delete Some Until There is Only 10
+		# Count Backups in Dir and Delete Some Until There is Only 10
 		files = [ name for name in os.listdir(backups_folder) if ".json" in name and "backup_" in name ]
 		print(files)	
 		while (len(files) > 10):
@@ -198,9 +241,38 @@ class DataTools():
 			del files[0]
 
 
-	def __sort():
-		pass
+	# Perform a simple selection sort
+	# Post Condition: Objects ordered from newest to oldest
+	def __sort(contents):
+		
+		lindex = 0
+		altered = 0
+		end = len(contents)
+		while (lindex < end):
+			
+			# Search for highest date
+			highest_date  = contents[lindex]["date"]
+			highest_index = lindex
+			rindex = lindex + 1
+			while (rindex < end):
+				if (contents[rindex]["date"] > highest_date):
+
+					# Swap elements if necessary
+					temp = contents[rindex]
+					contents[lindex] = temp
+					contents[rindex] = contents[lindex]
+
+					highest_date = contents[lindex]["date"]
+					highest_index = rindex
+
+					altered = True
+				rindex += 1
+			lindex += 1
+
+		return altered
 	
+
+	# Separate Moist Meters from Normal Uploads
 	def __filter_moist_meters(upload_list):
 		out = []
 		mm_count = 0
@@ -214,6 +286,21 @@ class DataTools():
 		print("Found " + str(mm_count) + " Moist Meters")
 		return out
 
-	def __send_notification(title, id):
+
+	def __send_notification(msg , id):
 		pass
 	
+
+	# Returns the contents of .data.json as a list
+	def __load_data():
+
+		# Check if the file exists. If not, pull it
+		if not os.path.isfile(FileOps.SOURCE_DIR + ".data.json"):
+			FileOps.pull()
+
+		# Load the file contents into a list
+		with open(FileOps.SOURCE_DIR + ".data.json", 'r') as file:
+			contents = json.load(file)
+			file.close()
+
+		return list(contents)	
