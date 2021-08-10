@@ -112,7 +112,6 @@
             $template.find("a").attr("href", "https://www.youtube.com/watch?v=" + id).html(title + "<span class=\"iconify ml-2\" data-icon=\"feather:external-link\" data-inline=\"false\"></span></a>");
             $template.find("#video_id").attr("value", id);
             
-            console.log($template.html());
             return $template.html();
         }
 
@@ -123,7 +122,6 @@
             if (active) $template.find(".carousel-item").addClass("active");
             else $template.find(".carousel-item").removeClass("active");
             
-            console.log($template.html());
             $('#inner').append($template.html());
         }
 
@@ -157,7 +155,9 @@
             var l = 0;
             for (i in data) { if (!data[i].rated) {l+=1;} }
             var embed = l <= 10;
-            console.log(embed);
+            if (!embed)
+                console.log("Too Many Form Entries to Add Embeds. Cards will Display Links Only.")
+
 
             var first = true;
             for (i in data) {

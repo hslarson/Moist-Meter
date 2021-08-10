@@ -24,9 +24,12 @@
             $data[$key]["category"] = $category;
             $data[$key]["score"] = $score;
             $data[$key]["rated"] = TRUE;
-
-            file_put_contents("../.data.json", json_encode($data, JSON_PRETTY_PRINT)); // Save the File
-            update(); // Update the last_update Tag
+            
+            // Save the File
+            file_put_contents("../.data.json", json_encode($data, JSON_PRETTY_PRINT));
+            
+            // Update the last_update Tag
+            update();
             break;
         }
     }
