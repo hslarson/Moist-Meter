@@ -51,14 +51,11 @@ class YouTube():
 			else:
 				url += "&pageToken=" + str(next_token)
 
-			try:
-				response = YouTube.rqst.get(url)
-				if response.status_code != 200:
-					raise Exception("Bad Response Status Code: " + str(response.status_code))
+			response = YouTube.rqst.get(url)
+			if response.status_code != 200:
+				raise Exception("Bad Response Status Code: " + str(response.status_code))
 
-				response = response.json()
-			except:
-				raise
+			response = response.json()
 
 			# Get Next
 			try:

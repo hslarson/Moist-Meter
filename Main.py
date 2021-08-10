@@ -1,6 +1,7 @@
 from DataManip import DataTools
 from pathlib import Path
 import logging
+import time
 import os
 
 # Initialize the log File
@@ -18,19 +19,30 @@ temp_file = open(logs_file, 'a')
 temp_file.write("\n" + '-'*64 + "\n\n")
 temp_file.close()
 logger.setLevel(logging.INFO)
+logger.info("Session Started. Welcome!")
 
 # Main Loop
 data = DataTools()
 running = True
+
+
 while running:
 
 	try:
-		DataTools.poll()
-		DataTools.audit()
+		next_poll  = DataTools.poll(logger)
+		next_audit = DataTools.audit(logger)
+
+		logger.info("Sleeping Until " + ("Next Poll" if next_poll < next_audit else "Next Audit") + " in " + str(round(max(min(next_poll, next_audit),0))) + " Seconds")
+		time.sleep(max(min(next_poll, next_audit),0))
+	
 	except KeyboardInterrupt:
 		logger.info("Interrupt Detected. Goodbye!")
 		running = False
-	except BaseException as err:
-		logger.exception(err)
+		continue
+	except:
+		raise
+		#logger.exception("Exception: ")
+		#continue
+
 
 logger.info("Session Ended")

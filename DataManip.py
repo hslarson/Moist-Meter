@@ -30,7 +30,7 @@ class FileOps():
 			p = subprocess.run(["rm", FileOps.SOURCE_DIR + rel_local_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 			if os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
-				raise Exception("Failed to Delete Local File: " + str(rel_local_path))
+				raise Exception("Failed to Delete Local File: " + str(rel_local_path) + ". Args='" + " ".join(p.args) + "'")
 	
 
 	# Used to pull files from ftp server
@@ -40,8 +40,9 @@ class FileOps():
 		ftp_url = 'ftp://' + FileOps.ftp_username + ':' + FileOps.ftp_password + '@' + FileOps.ftp_host + absolute_remote_path
 		p = subprocess.run(["wget", "-O", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		
+		print("Unable to Pull File " + str(absolute_remote_path) + " from Server. Args='" + " ".join(p.args) + "'")
 		if not os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
-			raise Exception("Unable to Pull File " + str(absolute_remote_path) + " from Server")
+			raise Exception("Unable to Pull File " + str(absolute_remote_path) + " from Server. Args='" + " ".join(p.args) + "'")
 
 
 	# Pushes the data File to the FTP server
@@ -51,7 +52,7 @@ class FileOps():
 		p = subprocess.run(["wput", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		
 		if (p.returncode):
-			raise Exception("Unable to Send File to Server")
+			raise Exception("Unable to Send File to Server. Args='" + " ".join(p.args) + "'")
 		elif remove_local_file:
 			FileOps.delete_file(rel_local_path)
 
@@ -59,6 +60,7 @@ class FileOps():
 
 class DataTools():
 
+	# Constructor
 	def __init__(self):
 		DataTools.yt_obj = YouTube()
 		DataTools.file_ops = FileOps()
@@ -78,8 +80,14 @@ class DataTools():
 		config_file.close()
 
 
+	# Destructor
 	def __del__(self):
+		DataTools.save_config()
+		FileOps.delete_file(".data.json")
 
+
+	# Saves the Local Config File
+	def save_config():
 		config = {}
 		config["pushover_settings"] = DataTools.pushover_settings
 		config["poll_settings"] = DataTools.poll_settings
@@ -89,76 +97,88 @@ class DataTools():
 			json.dump(config, file, indent='\t', separators=(',',' : '))
 			file.close()
 
-		FileOps.delete_file(".data.json")
-
 
 	# Gets YoutTube Data and Checks for New Moist Meters
 	# If Found, Add Entry to Data File 
-	def poll():
+	def poll(logger):
 
 		# Maintain the Desired Poll Frequency
-		if time.time() > DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
+		if time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
+			return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
+		else:
+			DataTools.poll_settings["last_poll"] = time.time()
+			DataTools.save_config()
 
-			# Pull YouTube Data
-			uploads = DataTools.yt_obj.pull_uploads(after=DataTools.poll_settings["last_poll"])
-			moist_meters = DataTools.__filter_moist_meters(uploads)
+		logger.info("Polling")
 
-			# If a New Moist Meter is Found, Append It To the List
-			if (len(moist_meters)):
+		# Pull YouTube Data
+		uploads = DataTools.yt_obj.pull_uploads(after=DataTools.poll_settings["last_poll"])
+		moist_meters = DataTools.__filter_moist_meters(uploads)
 
-				# Load the Data File and make sure it's sorted
-				contents = DataTools.__load_data()
-				DataTools.__sort(contents)
+		# If a New Moist Meter is Found, Append It To the List
+		if (len(moist_meters)):
 
-				# Iterate Over the New Moist Meters
-				notifications = []
-				for title, id, date in reversed(moist_meters):
+			# Load the Data File and make sure it's sorted
+			contents = DataTools.__load_data()
+			DataTools.__sort(contents)
 
-					# Filter Duplicates
-					known = False
-					for obj in contents:
-						if obj["date"] <= date:
+			# Iterate Over the New Moist Meters
+			notifications = []
+			for title, id, date in reversed(moist_meters):
 
-							if obj["date"] != date: notifications.append(obj)	
-							break
+				# Filter Duplicates
+				known = False
+				for obj in contents:
+					if obj["date"] <= date:
+						known = obj["date"] == date
+						break
 					
-					# Insert a New Object into the List
-					if not known:
-						payload = {
-							"date" : date,
-							"title" : title,
-							"id" : id,
-							"category" : "",
-							"score" : "",
-							"rated" : False
-						}
-						contents.insert(0, payload)
+				# Insert a New Object into the List
+				if not known:
+					print("Found New: " + title)
+					payload = {
+						"date" : date,
+						"title" : title,
+						"id" : id,
+						"category" : "",
+						"score" : "",
+						"rated" : False
+					}
+					notifications.append((title, id))
+					contents.insert(0, payload)
+				
+			if len(notifications):
+				# Send Pushover Notifications
+				for title, id in notifications:
+					logger.info("Found New Moist Meter:" + str(title))
+					DataTools.__send_notification(f"New Moist Meter: {title}", id)
 
 				# Upload the Updated Config File
 				with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
 					json.dump(contents, file, indent='\t', separators=(',',' : '))
-					file.close()	
-				FileOps.put_file()
+					file.close()
 
-				# Send Pushover Notifications
-				for title, id, _ in notifications:
-					DataTools.__send_notification(f"New Moist Meter: {title}", id)
-			
-			# Update Last Poll Variable
-			DataTools.poll_settings["last_poll"] = time.time()
-		else:
-			return
+				logger.info("Sending Updated Data to Server")
+				notifications.clear()	
+				FileOps.put_file(remove_local_file=False)
+		
+			FileOps.delete_file(".data.json")
+
+		return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 
 	
 	# Pulls te data file and makes sure everything is correct
 	# (i.e. No Duplicates, Sorted New->Old, Valid Video ID's)
-	def audit():
+	def audit(logger):
 
 		# Maintain the Desired Audit Frequency
 		if time.time() < DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"]:
-			return
+			return DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"] - time.time()
 		else:
 			DataTools.audit_settings["last_audit"] = time.time()
+			DataTools.save_config()
+
+		logger.info("Polling")
 
 		# Load the Data File
 		contents = DataTools.__load_data()
@@ -172,6 +192,7 @@ class DataTools():
 
 		# Sort the List (Newest -> Oldest)
 		if (DataTools.__sort(contents)):
+			logger.warning("List Was Out of Order")
 			altered = True
 
 		# Iterate Over Uploads
@@ -180,6 +201,7 @@ class DataTools():
 			# Check For Duplicates in .data.json
 			for i, o in enumerate(contents[index+1:]):
 				if obj["id"] == o["id"]:
+					logger.warning("Found Duplicate. Id=" + obj["id"] + ". Deleting...")
 					notifications.append(("Found Duplicate. Id=" + obj["id"] + ". Deleting...", obj["id"]))
 					del contents[index + i + 1]
 					altered = True
@@ -190,19 +212,23 @@ class DataTools():
 
 					# Compare ID
 					if id != obj["id"]:
+						logger.warning("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id))
 						notifications.append(("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id), obj["id"]))
 						obj["id"] = id
 						altered = True
 					
 					break
 			else:
+				logger.warning(f"Found No Matching Video for {obj['title']}")
 				notifications.append((f"Found No Matching Video for {obj['title']}", obj["id"]))
 		
 		if altered:
 			# Upload the File if Any Changes Were Made
 			with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
 				json.dump(contents, file, indent='\t', separators=(',',' : '))
-				file.close()	
+				file.close()
+
+			logger.info("Sending Updated Data to Server")
 			FileOps.put_file()
 
 		# Send Notifications
@@ -212,7 +238,10 @@ class DataTools():
 			notifications.clear()
 		
 		# Back Up the Data File
+		logger.info("Backing Up Data File")
 		DataTools.back_up()
+
+		return DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"] - time.time()
 
 
 	# Creates a Local Copy of the .data.json
