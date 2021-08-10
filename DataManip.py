@@ -68,6 +68,10 @@ class DataTools():
 		DataTools.yt_obj = YouTube()
 		DataTools.file_ops = FileOps()
 
+		# Clear Lingering Data Files
+		FileOps.delete_file(".data.json")
+
+		# Load the secrets file
 		secrets_file = open(FileOps.SOURCE_DIR + 'secrets.json')
 		if secrets_file.readable:
 			secrets_obj = json.load(secrets_file)
@@ -76,6 +80,7 @@ class DataTools():
 		else:
 			raise Exception("Failed to Read secrets.json")
 
+		# Load the config file
 		config_file = open(FileOps.SOURCE_DIR + 'config.json')
 		if config_file.readable:
 			config_obj = json.load(config_file)
@@ -87,12 +92,6 @@ class DataTools():
 			config_file.close()
 		else:
 			raise Exception("Failed to Load config.json")
-
-
-	# Destructor
-	def __del__(self):
-		DataTools.save_config()
-		FileOps.delete_file(".data.json")
 
 
 	# Saves the Local Config File
@@ -192,7 +191,7 @@ class DataTools():
 			DataTools.audit_settings["last_audit"] = time.time()
 			DataTools.save_config()
 
-		logger.info("Polling")
+		logger.info("Auditing")
 
 		# Load the Data File
 		contents = DataTools.__load_data()
