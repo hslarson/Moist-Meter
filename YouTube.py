@@ -11,9 +11,12 @@ class YouTube():
 	API_BASE_URL = "https://www.googleapis.com/youtube/v3/"
 
 	def __init__(self):
-		with open(os.path.dirname(os.path.realpath(__file__)) + '/secrets.json', 'r') as file:
+		file = open(os.path.dirname(os.path.realpath(__file__)) + '/secrets.json', 'r')
+		if file.readable:
 			self.API_KEY = json.load(file)["youtube_api_key"]
 			file.close()
+		else:
+			raise Exception("Failed to Read secrets.json")
 
 
 	# Returns a List of Every Video Uploaded by a Specific Youtuber

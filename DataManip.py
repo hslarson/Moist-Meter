@@ -14,7 +14,9 @@ class FileOps():
 
 	# Constructor
 	def __init__(self):
-		with open(FileOps.SOURCE_DIR + 'secrets.json') as file:
+
+		file = open(FileOps.SOURCE_DIR + 'secrets.json', 'r')
+		if file.readable:
 			json_obj = json.load(file)
 
 			FileOps.ftp_host = json_obj["ftp_host"]
@@ -22,6 +24,8 @@ class FileOps():
 			FileOps.ftp_password = json_obj["ftp_password"]
 
 			file.close()
+		else:
+			raise Exception("Could not Read secrets.json")
 
 
 	# A Helper Function to Remove the Temporary FTP Script
@@ -65,18 +69,24 @@ class DataTools():
 		DataTools.file_ops = FileOps()
 
 		secrets_file = open(FileOps.SOURCE_DIR + 'secrets.json')
-		config_file  = open(FileOps.SOURCE_DIR + 'config.json')
+		if secrets_file.readable:
+			secrets_obj = json.load(secrets_file)
+			DataTools.pushover_secrets = secrets_obj["pushover"]
+			secrets_file.close()
+		else:
+			raise Exception("Failed to Read secrets.json")
 
-		secrets_obj = json.load(secrets_file)
-		config_obj = json.load(config_file)
+		config_file = open(FileOps.SOURCE_DIR + 'config.json')
+		if config_file.readable:
+			config_obj = json.load(config_file)
 
-		DataTools.pushover_settings = config_obj["pushover_settings"]
-		DataTools.pushover_secrets = secrets_obj["pushover"]
-		DataTools.poll_settings = config_obj["poll_settings"]
-		DataTools.audit_settings = config_obj["audit_settings"]
-
-		secrets_file.close()
-		config_file.close()
+			DataTools.pushover_settings = config_obj["pushover_settings"]
+			DataTools.poll_settings = config_obj["poll_settings"]
+			DataTools.audit_settings = config_obj["audit_settings"]
+		
+			config_file.close()
+		else:
+			raise Exception("Failed to Load config.json")
 
 
 	# Destructor
@@ -92,9 +102,12 @@ class DataTools():
 		config["poll_settings"] = DataTools.poll_settings
 		config["audit_settings"] = DataTools.audit_settings
 
-		with  open(FileOps.SOURCE_DIR + 'config.json', 'w') as file:
+		file = open(FileOps.SOURCE_DIR + 'config.json', 'w')
+		if file.writable:
 			json.dump(config, file, indent='\t', separators=(',',' : '))
 			file.close()
+		else:
+			raise Exception("config.json Could Not be Written To")
 
 
 	# Gets YoutTube Data and Checks for New Moist Meters
@@ -151,13 +164,16 @@ class DataTools():
 					logger.info("Found New Moist Meter:" + str(title))
 					DataTools.__send_notification(f"New Moist Meter: {title}", id)
 
-				# Upload the Updated Config File
-				with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
+				# Upload the File if Any Changes Were Made
+				file = open(FileOps.SOURCE_DIR + ".data.json", 'w')
+				if file.writable:
 					json.dump(contents, file, indent='\t', separators=(',',' : '))
 					file.close()
-
+				else:
+					raise Exception("Could Not Write to .data.json")
+				
+				notifications.clear()
 				logger.info("Sending Updated Data to Server")
-				notifications.clear()	
 				FileOps.put_file(remove_local_file=False)
 		
 			FileOps.delete_file(".data.json")
@@ -222,9 +238,12 @@ class DataTools():
 		
 		if altered:
 			# Upload the File if Any Changes Were Made
-			with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
+			file = open(FileOps.SOURCE_DIR + ".data.json", 'w')
+			if file.writable:
 				json.dump(contents, file, indent='\t', separators=(',',' : '))
 				file.close()
+			else:
+				raise Exception("Could Not Write to .data.json")
 
 			logger.info("Sending Updated Data to Server")
 			FileOps.put_file()
@@ -321,8 +340,11 @@ class DataTools():
 			FileOps.pull_file()
 
 		# Load the file contents into a list
-		with open(FileOps.SOURCE_DIR + ".data.json", 'r') as file:
+		file = open(FileOps.SOURCE_DIR + ".data.json", 'r')
+		if file.readable:
 			contents = json.load(file)
 			file.close()
+		else:
+			raise Exception("Could Not Read .data.json")
 
 		return list(contents)
