@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import requests
 import json
+import time
 import os
 
 
@@ -13,27 +14,37 @@ class YouTube():
 	def __init__(self):
 		file = open(os.path.dirname(os.path.realpath(__file__)) + '/secrets.json', 'r')
 		if file.readable:
-			self.API_KEY = json.load(file)["youtube_api_key"]
+			YouTube.API_KEY = json.load(file)["youtube_api_key"]
 			file.close()
 		else:
 			raise Exception("Failed to Read secrets.json")
 
 
 	# Returns a List of Every Video Uploaded by a Specific Youtuber
-	def pull_uploads(self, username="penguinz0", before=None, after=None):
-		return YouTube.get_videos_by_playlist(self, YouTube.get_playlist_id(self, username), before, after )
+	def pull_uploads(username="penguinz0", before=None, after=None):
+
+		window =  (before if before else time.time())
+		window -= (after if after else 0)
+
+		max_extries = 50
+		if window < 3600 * 8:
+			max_extries = 3
+		elif window < 3600 * 24 * 7:
+			max_extries = 20
+
+		return YouTube.get_videos_by_playlist(YouTube.get_playlist_id(username), before, after, max_extries)
 
 
 	# Get Playlist ID for a Specific Channel
-	def get_playlist_id(self, username, playlist_name="uploads"):
+	def get_playlist_id(username, playlist_name="uploads"):
 
-		response = YouTube.rqst.get(YouTube.API_BASE_URL + "channels?part=contentDetails&forUsername={u}&key={key}".format(key=self.API_KEY, u=username))
+		response = YouTube.rqst.get(YouTube.API_BASE_URL + "channels?part=contentDetails&forUsername={u}&key={key}".format(key=YouTube.API_KEY, u=username))
 		return response.json()["items"][0]["contentDetails"]["relatedPlaylists"][playlist_name]
 
 
 	# Returns all of the Videos in a Given Playlist
 	# Videos Represented by a Tuple with the Format: (title, video id, utc timestamp)
-	def get_videos_by_playlist(self, playlist_id, before=None, after=None):
+	def get_videos_by_playlist(playlist_id, before=None, after=None, block_size=20):
 
 		if (before and (after > before)):
 			raise Exception("In get_videos_by_playlist(): 'after' should not be greater then 'before'")
@@ -45,9 +56,10 @@ class YouTube():
 		while running:
 
 			# Make the Request
-			url = YouTube.API_BASE_URL + "playlistItems?part=snippet&maxResults=50"
+			url = YouTube.API_BASE_URL + "playlistItems?part=snippet"
+			url += "&maxResults=" + str(block_size)
 			url += "&playlistId=" + str(playlist_id)
-			url += "&key=" + str(self.API_KEY)
+			url += "&key=" + str(YouTube.API_KEY)
 
 			if first:
 				first = False
