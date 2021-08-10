@@ -106,8 +106,9 @@ class DataTools():
 			# If a New Moist Meter is Found, Append It To the List
 			if (len(moist_meters)):
 
-				# Load the Data File
+				# Load the Data File and make sure it's sorted
 				contents = DataTools.__load_data()
+				DataTools.__sort(contents)
 
 				# Iterate Over the New Moist Meters
 				notifications = []
