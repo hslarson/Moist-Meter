@@ -40,7 +40,6 @@ class FileOps():
 		ftp_url = 'ftp://' + FileOps.ftp_username + ':' + FileOps.ftp_password + '@' + FileOps.ftp_host + absolute_remote_path
 		p = subprocess.run(["wget", "-O", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		
-		print("Unable to Pull File " + str(absolute_remote_path) + " from Server. Args='" + " ".join(p.args) + "'")
 		if not os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
 			raise Exception("Unable to Pull File " + str(absolute_remote_path) + " from Server. Args='" + " ".join(p.args) + "'")
 
@@ -135,7 +134,6 @@ class DataTools():
 					
 				# Insert a New Object into the List
 				if not known:
-					print("Found New: " + title)
 					payload = {
 						"date" : date,
 						"title" : title,
