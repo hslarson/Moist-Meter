@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import requests
 import json
+import os
 
 
 
@@ -10,7 +11,7 @@ class YouTube():
 	API_BASE_URL = "https://www.googleapis.com/youtube/v3/"
 
 	def __init__(self):
-		with open('secrets.json', 'r') as file:
+		with open(os.path.dirname(os.path.realpath(__file__)) + '/secrets.json', 'r') as file:
 			self.API_KEY = json.load(file)["youtube_api_key"]
 			file.close()
 
