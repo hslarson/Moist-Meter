@@ -39,8 +39,6 @@ class YouTube():
 
 		while running:
 
-			print("Looping")
-
 			# Make the Request
 			url = YouTube.API_BASE_URL + "playlistItems?part=snippet&maxResults=50"
 			url += "&playlistId=" + str(playlist_id)
@@ -54,8 +52,7 @@ class YouTube():
 			try:
 				response = YouTube.rqst.get(url)
 				if response.status_code != 200:
-					print("Code: " + str(response.status_code))
-					raise Exception("Bad Response Status Code")
+					raise Exception("Bad Response Status Code: " + str(response.status_code))
 
 				response = response.json()
 			except:
@@ -72,9 +69,7 @@ class YouTube():
 			# Save Details
 			for item in response["items"]:
 
-				#print(item["snippet"]["publishedAt"])
 				tm = YouTube.__str2timestamp(item["snippet"]["publishedAt"])
-				#print(tm)
 				
 				if before and tm > before:
 					continue

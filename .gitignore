@@ -1,9 +1,16 @@
 
 # Hide the secrets file
 secrets.*
+!Templates/secrets.json
+
+# Hide config
+config.json
+!Templates/config.json
 
 # Hide Backups
 Data_Backups/
 
 # Hide Junk
 __pycache__/
+logs/
+.data.json

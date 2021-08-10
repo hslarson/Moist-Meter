@@ -1,18 +1,18 @@
 from datetime import datetime
-import json
-from posixpath import relpath
-import subprocess
-import os
-import time
 from YouTube import YouTube
+import subprocess
+import json
+import time
+import os
+
+
 
 class FileOps():
 
-	PULL = "get"
-	PUSH = "put"
-	FTP_SCRIPT_NAME = "ftp_script.txt"
-	SOURCE_DIR = os.path.dirname(os.path.realpath(__file__)) + '\\'
+	SOURCE_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
 
+
+	# Constructor
 	def __init__(self):
 		with open(FileOps.SOURCE_DIR + 'secrets.json') as file:
 			json_obj = json.load(file)
@@ -24,52 +24,38 @@ class FileOps():
 			file.close()
 
 
-	# A Special Destructor to Make Sure the FTP Script Gets Deleted
-	def __del__(self):
-		FileOps.delete_file(FileOps.FTP_SCRIPT_NAME)
-
-
 	# A Helper Function to Remove the Temporary FTP Script
-	def delete_file(rel_path):
-		if os.path.isfile(FileOps.SOURCE_DIR + rel_path):
-			os.system("del " + FileOps.SOURCE_DIR + rel_path)
+	def delete_file(rel_local_path):
+		if os.path.isfile(FileOps.SOURCE_DIR + rel_local_path):
+			p = subprocess.run(["rm", FileOps.SOURCE_DIR + rel_local_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+			if os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
+				raise Exception("Failed to Delete Local File: " + str(rel_local_path))
 	
 
-	# Performs an ftp operation by creating a script file and running it in the terminal
-	def __ftp_operation(operation, filename, ftp_filepath="htdocs"):
+	# Used to pull files from ftp server
+	# Gets the Data File by Default
+	def pull_file(absolute_remote_path="/htdocs/.data.json", rel_local_path=".data.json"):
 
-		with open(FileOps.SOURCE_DIR + FileOps.FTP_SCRIPT_NAME, 'w') as file:
-			file.write(FileOps.ftp_username + "\n")
-			file.write(FileOps.ftp_password + "\n")
-			file.write("cd " + str(ftp_filepath) + "\n")
-			file.write("lcd " + FileOps.SOURCE_DIR[:-1] + "\n")
-			file.write(str(operation) + " " + str(filename) + "\n")
-			file.write("close\n")
-			file.write("quit\n")
-			file.close()
-
-		# subprocess.check_output("ftp -s:ftp_script.txt " + self.ftp_host, shell=True)
-		os.system("ftp -s:" + FileOps.SOURCE_DIR + FileOps.FTP_SCRIPT_NAME + " " + FileOps.ftp_host)
-		FileOps.delete_file(FileOps.FTP_SCRIPT_NAME)
-
-
-	# Pulls the data File from the FTP server
-	def pull(filename=".data.json", destination_dir="", ftp_dir="htdocs"):
-		FileOps.__ftp_operation(FileOps.PULL, filename, ftp_dir)
+		ftp_url = 'ftp://' + FileOps.ftp_username + ':' + FileOps.ftp_password + '@' + FileOps.ftp_host + absolute_remote_path
+		p = subprocess.run(["wget", "-O", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		
-		if len(destination_dir) and os.path.isfile(FileOps.SOURCE_DIR + ".data.json"):
-
-			print("move " + FileOps.SOURCE_DIR + ".data.json" + " " + FileOps.SOURCE_DIR + destination_dir)
-			os.system("move " + FileOps.SOURCE_DIR + ".data.json" + " " + FileOps.SOURCE_DIR + destination_dir)
+		if not os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
+			raise Exception("Unable to Pull File " + str(absolute_remote_path) + " from Server")
 
 
 	# Pushes the data File to the FTP server
-	def put(filename=".data.json", dir="htdocs"):
-		FileOps.__ftp_operation(FileOps.PUSH, filename, dir)
+	def put_file(absolute_remote_path="/htdocs/", rel_local_path=".data.json", remove_local_file=True):
+		
+		ftp_url = 'ftp://' + FileOps.ftp_username + ':' + FileOps.ftp_password + '@' + FileOps.ftp_host + absolute_remote_path
+		p = subprocess.run(["wput", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+		
+		if (p.returncode):
+			raise Exception("Unable to Send File to Server")
+		elif remove_local_file:
+			FileOps.delete_file(rel_local_path)
 
 
-
-from pathlib import Path, PurePath
 
 class DataTools():
 
@@ -98,7 +84,6 @@ class DataTools():
 		config["pushover_settings"] = DataTools.pushover_settings
 		config["poll_settings"] = DataTools.poll_settings
 		config["audit_settings"] = DataTools.audit_settings
-		print(config)
 
 		with  open(FileOps.SOURCE_DIR + 'config.json', 'w') as file:
 			json.dump(config, file, indent='\t', separators=(',',' : '))
@@ -107,8 +92,11 @@ class DataTools():
 		FileOps.delete_file(".data.json")
 
 
+	# Gets YoutTube Data and Checks for New Moist Meters
+	# If Found, Add Entry to Data File 
 	def poll():
 
+		# Maintain the Desired Poll Frequency
 		if time.time() > DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
 
 			# Pull YouTube Data
@@ -149,7 +137,7 @@ class DataTools():
 				with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
 					json.dump(contents, file, indent='\t', separators=(',',' : '))
 					file.close()	
-				FileOps.put()
+				FileOps.put_file()
 
 				# Send Pushover Notifications
 				for title, id, _ in notifications:
@@ -160,61 +148,67 @@ class DataTools():
 		else:
 			return
 
-		
+	
+	# Pulls te data file and makes sure everything is correct
+	# (i.e. No Duplicates, Sorted New->Old, Valid Video ID's)
 	def audit():
+
+		# Maintain the Desired Audit Frequency
+		if time.time() < DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"]:
+			return
+		else:
+			DataTools.audit_settings["last_audit"] = time.time()
 
 		# Load the Data File
 		contents = DataTools.__load_data()
 
 		# Pull Uploads
-		last_date = contents[:-1]["date"]
+		last_date = contents[-1]["date"]
 		uploads = DataTools.yt_obj.pull_uploads(after=last_date)
-
-		# Iterate Over Uploads
+		
 		altered = False
 		notifications = []
+
+		# Sort the List (Newest -> Oldest)
+		if (DataTools.__sort(contents)):
+			altered = True
+
+		# Iterate Over Uploads
 		for index, obj in enumerate(contents):
 			
 			# Check For Duplicates in .data.json
 			for i, o in enumerate(contents[index+1:]):
 				if obj["id"] == o["id"]:
-					print("Found Duplicate. Id for object\n\t" + obj + "\nmatches the id for\n\t" + o)
-					notifications.append("Found Duplicate. Id for object\n\t" + obj + "\nmatches the id for\n\t" + o)
+					notifications.append(("Found Duplicate. Id=" + obj["id"] + ". Deleting...", obj["id"]))
 					del contents[index + i + 1]
 					altered = True
 
 			# Find the Video with Matching Upload Timestamp from Uploads
-			for title, id, date in uploads:
+			for _, id, date in uploads:
 				if date == obj["date"]:
-
-					# Compare Title
-					if title != obj["title"]:
-						print("Title Changed: " + str(obj["title"]) + " -> " + str(title))
-						notifications.append("Title Changed: " + str(obj["title"]) + " -> " + str(title))
-						obj["title"] = title
-						altered = True
 
 					# Compare ID
 					if id != obj["id"]:
-						print("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id))
-						notifications.append("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id))
+						notifications.append(("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id), obj["id"]))
 						obj["id"] = id
 						altered = True
-
-		# Sort the List (Newest -> Oldest)
-		if (DataTools.__sort(contents)):
-			altered = True
+					
+					break
+			else:
+				notifications.append((f"Found No Matching Video for {obj['title']}", obj["id"]))
 		
 		if altered:
 			# Upload the File if Any Changes Were Made
 			with open(FileOps.SOURCE_DIR + ".data.json", "w") as file:
 				json.dump(contents, file, indent='\t', separators=(',',' : '))
 				file.close()	
-			FileOps.put()
+			FileOps.put_file()
 
-			# Send Notifications
-			for msg in notifications:
-				DataTools.__send_notification(msg)
+		# Send Notifications
+		for msg, id in notifications:
+			DataTools.__send_notification(msg, id)
+		else:
+			notifications.clear()
 		
 		# Back Up the Data File
 		DataTools.back_up()
@@ -223,22 +217,14 @@ class DataTools():
 	# Creates a Local Copy of the .data.json
 	def back_up():
 		
-		temp = FileOps()
-		backups_folder = FileOps.SOURCE_DIR + "Data_Backups\\"
+		# Pull Data, Move it To Backups Folder, and Rename it
+		FileOps.pull_file(rel_local_path="Data_Backups/backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
 
-		# Pull Data & Move it To Backups Folder
-		temp.pull(destination_dir="Data_Backups")
-
-		# Rename it to Include Time and Date Info
-		print("rename " + backups_folder + ".data.json" + " backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
-		os.system("rename " + backups_folder + ".data.json" + " backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
-		
 		# Count Backups in Dir and Delete Some Until There is Only 10
-		files = [ name for name in os.listdir(backups_folder) if ".json" in name and "backup_" in name ]
-		print(files)	
+		backups_folder_name = "Data_Backups/"
+		files = [ name for name in os.listdir(FileOps.SOURCE_DIR + backups_folder_name) if ".json" in name and "backup_" in name ]
 		while (len(files) > 10):
-			os.system("del " + backups_folder + files.pop(0))
-			del files[0]
+			FileOps.delete_file(backups_folder_name + files.pop(0))
 
 
 	# Perform a simple selection sort
@@ -278,16 +264,25 @@ class DataTools():
 		for title, id, date in upload_list:
 			if "Moist Meter: " in title or "Moist Meter | " in title:
 				mm_count += 1
-				title = title.replace("Moist Meter: ", "").replace(
-					"Moist Meter | ", "")
+				title = title.replace("Moist Meter: ", "").replace("Moist Meter | ", "")
 				out.append((title, id, date))
 
-		print("Found " + str(mm_count) + " Moist Meters")
 		return out
 
 
-	def __send_notification(msg , id):
-		pass
+	# Sends a Pushover Notification 
+	def __send_notification(msg , id=None):
+		
+		payload = {
+			"token" : DataTools.pushover_secrets["app_token"],
+			"user" : DataTools.pushover_secrets["user_key"],
+			"message" : msg
+		}
+		if type(id) == str:
+			payload["url"] = ("https://www.youtube.com/watch?v=" + id if "New Moist Meter:" not in msg else "http://www.moistmeter.42web.io/form/")
+			payload["url_title"] = ("Watch Video" if "New Moist Meter:" not in msg else "Go To Form")
+
+		YouTube.rqst.post("https://api.pushover.net/1/messages.json", params=payload)
 	
 
 	# Returns the contents of .data.json as a list
@@ -295,11 +290,11 @@ class DataTools():
 
 		# Check if the file exists. If not, pull it
 		if not os.path.isfile(FileOps.SOURCE_DIR + ".data.json"):
-			FileOps.pull()
+			FileOps.pull_file()
 
 		# Load the file contents into a list
 		with open(FileOps.SOURCE_DIR + ".data.json", 'r') as file:
 			contents = json.load(file)
 			file.close()
 
-		return list(contents)	
+		return list(contents)
