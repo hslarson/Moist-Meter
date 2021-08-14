@@ -40,9 +40,9 @@ while running:
 		running = False
 		continue
 	except:
-		raise
-		#logger.exception("Exception: ")
-		#continue
+		#raise
+		logger.exception("Exception: ")
+		continue
 
 
 logger.info("Session Ended")

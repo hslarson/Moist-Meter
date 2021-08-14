@@ -38,6 +38,7 @@ class YouTube():
 	# Get Playlist ID for a Specific Channel
 	def get_playlist_id(username, playlist_name="uploads"):
 
+		print(YouTube.API_BASE_URL + "channels?part=contentDetails&forUsername={u}&key={key}".format(key=YouTube.API_KEY, u=username))
 		response = YouTube.rqst.get(YouTube.API_BASE_URL + "channels?part=contentDetails&forUsername={u}&key={key}".format(key=YouTube.API_KEY, u=username))
 		return response.json()["items"][0]["contentDetails"]["relatedPlaylists"][playlist_name]
 
@@ -66,6 +67,7 @@ class YouTube():
 			else:
 				url += "&pageToken=" + str(next_token)
 
+			print(url)
 			response = YouTube.rqst.get(url)
 			if response.status_code != 200:
 				raise Exception("Bad Response Status Code: " + str(response.status_code))
@@ -95,6 +97,7 @@ class YouTube():
 				vid_id = item["snippet"]["resourceId"]["videoId"]
 				big_list.append((title, vid_id, tm))
 
+		print()
 		return big_list
 
 

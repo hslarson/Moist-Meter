@@ -123,7 +123,7 @@ class DataTools():
 		logger.info("Polling")
 
 		# Pull YouTube Data
-		uploads = DataTools.pull_uploads(after=DataTools.poll_settings["last_poll"])
+		uploads = YouTube.pull_uploads(after=DataTools.poll_settings["last_poll"])
 		moist_meters = DataTools.__filter_moist_meters(uploads)
 
 		# If a New Moist Meter is Found, Append It To the List
@@ -198,7 +198,7 @@ class DataTools():
 
 		# Pull Uploads
 		last_date = contents[-1]["date"]
-		uploads = DataTools.pull_uploads(after=last_date)
+		uploads = YouTube.pull_uploads(after=last_date)
 		
 		altered = False
 		notifications = []
@@ -318,6 +318,8 @@ class DataTools():
 
 	# Sends a Pushover Notification 
 	def __send_notification(msg , id=None):
+		if not DataTools.pushover_settings["allow_pushover_notifications"]:
+			return
 		
 		payload = {
 			"token" : DataTools.pushover_secrets["app_token"],
