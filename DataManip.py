@@ -52,7 +52,7 @@ class FileOps():
 	def put_file(absolute_remote_path="/htdocs/", rel_local_path=".data.json", remove_local_file=True):
 		
 		ftp_url = 'ftp://' + FileOps.ftp_username + ':' + FileOps.ftp_password + '@' + FileOps.ftp_host + absolute_remote_path
-		p = subprocess.run(["wput", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+		p = subprocess.run(["wput", "--reupload", "-A", "--basename=" + FileOps.SOURCE_DIR, FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		
 		if (p.returncode):
 			raise Exception("Unable to Send File to Server. Args='" + " ".join(p.args) + "'")
@@ -117,13 +117,14 @@ class DataTools():
 		if time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
 			return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 		else:
+			last_poll = DataTools.poll_settings["last_poll"]
 			DataTools.poll_settings["last_poll"] = time.time()
 			DataTools.save_config()
 
 		logger.info("Polling")
 
 		# Pull YouTube Data
-		uploads = YouTube.pull_uploads(after=DataTools.poll_settings["last_poll"])
+		uploads = YouTube.pull_uploads(after=last_poll)
 		moist_meters = DataTools.__filter_moist_meters(uploads)
 
 		# If a New Moist Meter is Found, Append It To the List
@@ -160,7 +161,7 @@ class DataTools():
 			if len(notifications):
 				# Send Pushover Notifications
 				for title, id in notifications:
-					logger.info("Found New Moist Meter:" + str(title))
+					logger.info("Found New Moist Meter: " + str(title))
 					DataTools.__send_notification(f"New Moist Meter: {title}", id)
 
 				# Upload the File if Any Changes Were Made
@@ -337,8 +338,10 @@ class DataTools():
 	def __load_data():
 
 		# Check if the file exists. If not, pull it
-		if not os.path.isfile(FileOps.SOURCE_DIR + ".data.json"):
-			FileOps.pull_file()
+		# if not os.path.isfile(FileOps.SOURCE_DIR + ".data.json"):
+		# 	FileOps.pull_file()
+		FileOps.delete_file(".data.json")
+		FileOps.pull_file()
 
 		# Load the file contents into a list
 		file = open(FileOps.SOURCE_DIR + ".data.json", 'r')
