@@ -116,15 +116,11 @@ class DataTools():
 		# Maintain the Desired Poll Frequency
 		if time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
 			return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
-		else:
-			last_poll = DataTools.poll_settings["last_poll"]
-			DataTools.poll_settings["last_poll"] = time.time()
-			DataTools.save_config()
 
 		logger.info("Polling")
 
 		# Pull YouTube Data
-		uploads = YouTube.pull_uploads(after=last_poll)
+		uploads = YouTube.pull_uploads(after=DataTools.poll_settings["last_poll"])
 		moist_meters = DataTools.__filter_moist_meters(uploads)
 
 		# If a New Moist Meter is Found, Append It To the List
@@ -178,6 +174,9 @@ class DataTools():
 		
 			FileOps.delete_file(".data.json")
 
+		# Update last_poll last (this way if errors are encountered the poll will retry from the previous last_poll)
+		DataTools.poll_settings["last_poll"] = time.time()
+		DataTools.save_config()
 		return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 
 	
@@ -337,9 +336,7 @@ class DataTools():
 	# Returns the contents of .data.json as a list
 	def __load_data():
 
-		# Check if the file exists. If not, pull it
-		# if not os.path.isfile(FileOps.SOURCE_DIR + ".data.json"):
-		# 	FileOps.pull_file()
+		# Delete Old Files and Pull the New One
 		FileOps.delete_file(".data.json")
 		FileOps.pull_file()
 

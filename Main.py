@@ -4,6 +4,7 @@ import logging
 import time
 import os
 
+
 # Initialize the log File
 logs_path = os.path.join(Path().absolute(), "logs")
 Path(logs_path).mkdir(parents=True, exist_ok=True)
@@ -21,11 +22,27 @@ temp_file.close()
 logger.setLevel(logging.INFO)
 logger.info("Session Started. Welcome!")
 
+
+# Kill the program if more than 10 errors are encountered in 15 minutes
+errors = []
+def error_counter():
+	global errors
+	RETRIES = 10
+	WINDOW  = 15 #minutes
+	
+	errors.append(time.time())
+	while len(errors) > RETRIES: errors.pop(0)
+
+	t_cutoff = time.time() - (WINDOW*60)
+	fail = (len(errors) == RETRIES) and (min(errors) > t_cutoff)
+	
+	if fail: logger.error("Too Many Errors Occured, Exiting...")
+	return (not fail)
+
+
 # Main Loop
 data = DataTools()
 running = True
-
-
 while running:
 
 	try:
@@ -40,8 +57,9 @@ while running:
 		running = False
 		continue
 	except:
-		#raise
 		logger.exception("Exception: ")
+		time.sleep(60)
+		running = error_counter()
 		continue
 
 
