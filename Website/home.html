@@ -30,7 +30,7 @@
 	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
 
 	<!-- Loads 3rd Party Scripts -->
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
@@ -84,10 +84,10 @@
 	<!-- Bottom Banner -->
 	<div class="d-flex bg-light flex-wrap justify-content-between">
 		<div class="flex-column text-center p-2">
-			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">last_update=1628139058</p>
+			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">last_update=1629701589</p>
 		</div>
 		<div class="flex-column text-center p-2">
-			<p id="last_update" class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://docs.google.com/forms/d/e/1FAIpQLScggit1tZFNKtu0xbJKTKuDEvtCjLYFtma41gjJiQzurMvqIg/viewform?usp=sf_link">Contact</a></p>
+			<p class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://github.com/hslarson/Moist-Meter">GitHub Repo</a></p>
 		</div>
 	</div>
 
@@ -123,7 +123,7 @@
 		// Replace Epoch Time with Formatted Date
 		$(function() {
 			var substr = $("#last_update").text().replace("last_update=", "");
-			$("#last_update").html( "Last Updated: " + dateFormatter(substr) );
+			$("#last_update").html( "© " + new Date().getFullYear().toString() + " | Last Updated: " + dateFormatter(substr));
 		});
 	</script>
 	
