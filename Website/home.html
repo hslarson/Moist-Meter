@@ -5,7 +5,8 @@
 	<!-- Basic Meta Tags -->
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-	<link rel="icon" href="https://i.ibb.co/F7P1bw1/icon.png">
+	<meta name="description" content="A comprehensive list of every Moist Meter produced by the legendary Charles White." />
+	<link rel="icon" href="https://i.ibb.co/stK0YKD/small-icon-1.png">
 	<title>Moist Meter List</title>
 
 	<!-- Open Graph Meta Tags -->
@@ -14,20 +15,21 @@
 	<meta property="og:url" content="http://www.moistmeter.42web.io" />
 	<meta property="og:description" content="A comprehensive list of every Moist Meter produced by the legendary Charles White." />
 
-	<meta property="og:image" content="https://i.ibb.co/7VjfB2Q/drop-icon.png" />
+	<meta property="og:image" content="https://i.ibb.co/qsFvM3m/og-icon-1.png" />
 	<meta property="og:image:type" content="image/png" />
 	<meta property="og:image:width" content="144" />
 	<meta property="og:image:height" content="144" />
 	<meta property="og:image:alt" content="Water Drop Icon" />
 
 	<!-- Apple Icons -->
-	<link rel="apple-touch-icon" sizes="144x144" href="https://i.ibb.co/7VjfB2Q/drop-icon.png" />
+	<link rel="apple-touch-icon" sizes="144x144" href="https://i.ibb.co/qsFvM3m/og-icon-1.png" />
 
 	<!-- Scripts -->
 	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
 		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
 
+	<!-- Loads 3rd Party Scripts -->
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
@@ -40,7 +42,7 @@
 
 <body>
 	<!-- Jumbotron (Top Banner) -->
-	<div class="jumbotron text-center p-4 m-0" style="background-image: url('https://i.ibb.co/1QtnJ7X/pattern1.png');">
+	<div class="jumbotron text-center p-4 m-0" style="background-image: url('https://i.ibb.co/M7Ncrzk/jumbotron-icon-1.png');">
 		<h1 class="display-4 text-white">Every Moist Meter</h1>
 		<p class="mb-0" style="color:rgb(219, 219, 219)"><em>"I'm comin' in here raw, no rubber"</em> -Jesus</p>
 	</div>
@@ -92,6 +94,42 @@
 
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
+		// Gets the Data File from the Server
+		async function get_json() {
+			return await $.getJSON(".data.json");
+		}
+
+		// Generates the Main Table
+		$(async function() {
+			var d = await get_json();
+			var out = [];
+
+			for (i in d) {
+				if (!d[i].rated) continue;
+
+				out.push({
+					"num" : d.length - i,
+					"date" : d[i].date,
+					"category" : d[i].category,
+					"title_id" : d[i].title + "%%%" + d[i].id,
+					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score
+				});
+			}
+			
+			$('#table').bootstrapTable({ data: out });
+			$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
+		});
+
+		// Replace Epoch Time with Formatted Date
+		$(function() {
+			var substr = $("#last_update").text().replace("last_update=", "");
+			$("#last_update").html( "Last Updated: " + dateFormatter(substr) );
+		});
+	</script>
+	
+	
+	<!-- Custom Filters and Search Functions -->
+	<script>
 		// Search Data by Text
 		function titleSearch(data, search_target) {
 			if (!search_target.length) { return data; }
@@ -128,38 +166,9 @@
 			$("#table").bootstrapTable('filterBy', {"category" : val});
 		}
 
-		// Gets the Data File from the Server
-		async function get_json() {
-			return await $.getJSON('./.data.json');
-		}
 
-		// Generates the Main Table
-		$(async function() {
-			var d = await get_json();
-			var out = [];
-
-			for (i in d) {
-				if (!d[i].rated) continue;
-
-				out.push({
-					"num" : d.length - i,
-					"date" : d[i].date,
-					"category" : d[i].category,
-					"title_id" : d[i].title + "%%%" + d[i].id,
-					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score
-				});
-			}
-			
-			$('#table').bootstrapTable({ data: out });
-			$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
-		});
-
-		// Replace Epoch Time with Formatted Date
-		$(function() {
-			var substr = $("#last_update").text().replace("last_update=", "");
-			$("#last_update").html( "Last Updated: " + dateFormatter(substr) );
-		});
 	</script>
+
 
 	<!-- Formatters For Date, Title, and Score -->
 	<script>
@@ -179,5 +188,6 @@
 			return value.replace("000", "");
 		}
 	</script>
+
 </body>
 </html>

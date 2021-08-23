@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /.htaccess
+Disallow: /.data.json
+Disallow: /form/
