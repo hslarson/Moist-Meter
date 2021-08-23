@@ -28,7 +28,7 @@ class FileOps():
 			raise Exception("Could not Read secrets.json")
 
 
-	# A Helper Function to Remove the Temporary FTP Script
+	# A Helper Function for Removing Files
 	def delete_file(rel_local_path):
 		if os.path.isfile(FileOps.SOURCE_DIR + rel_local_path):
 			p = subprocess.run(["rm", FileOps.SOURCE_DIR + rel_local_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -37,7 +37,7 @@ class FileOps():
 				raise Exception("Failed to Delete Local File: " + str(rel_local_path) + ". Args='" + " ".join(p.args) + "'")
 	
 
-	# Used to pull files from ftp server
+	# Used to pull files from FTP server
 	# Gets the Data File by Default
 	def pull_file(absolute_remote_path="/htdocs/.data.json", rel_local_path=".data.json"):
 
