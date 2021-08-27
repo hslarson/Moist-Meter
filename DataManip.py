@@ -96,14 +96,23 @@ class DataTools():
 
 	# Saves the Local Config File
 	def save_config():
-		config = {}
-		config["pushover_settings"] = DataTools.pushover_settings
-		config["poll_settings"] = DataTools.poll_settings
-		config["audit_settings"] = DataTools.audit_settings
 
+		# Read the Config File
+		file = open(FileOps.SOURCE_DIR + 'config.json', 'r')
+		if file.readable:
+			contents = json.load(file)
+			file.close()
+		else:
+			raise Exception("config.json Could Not be Read")
+
+		# Alter the last poll/audit variables
+		contents["poll_settings"]["last_poll"] = DataTools.poll_settings["last_poll"] 
+		contents["audit_settings"]["last_audit"] = DataTools.audit_settings["last_audit"] 
+
+		# Replace the Contents of the Config File
 		file = open(FileOps.SOURCE_DIR + 'config.json', 'w')
 		if file.writable:
-			json.dump(config, file, indent='\t', separators=(',',' : '))
+			json.dump(contents, file, indent='\t', separators=(',',' : '))
 			file.close()
 		else:
 			raise Exception("config.json Could Not be Written To")
