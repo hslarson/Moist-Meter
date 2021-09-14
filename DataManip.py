@@ -229,7 +229,7 @@ class DataTools():
 					altered = True
 
 			# Find the Video with Matching Upload Timestamp from Uploads
-			for _, id, date in uploads:
+			for title, id, date in uploads:
 				if (date > obj["date"] - 30) and (date < obj["date"] + 30):
 
 					# Compare ID
@@ -240,6 +240,10 @@ class DataTools():
 						altered = True
 					
 					break
+
+				elif obj["title"] in title:
+					logger.warning("Upload Time (from YT) = " + str(date) + ". Expected (from Data File) = " + str(obj["date"]) + ". Difference = " + str(abs(date - obj["date"])))
+
 			else:
 				logger.warning(f"Found No Matching Video for {obj['title']}")
 				notifications.append((f"Found No Matching Video for {obj['title']}", obj["id"]))
