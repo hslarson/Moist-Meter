@@ -230,7 +230,7 @@ class DataTools():
 
 			# Find the Video with Matching Upload Timestamp from Uploads
 			for _, id, date in uploads:
-				if date == obj["date"]:
+				if (date > obj["date"] - 30) and (date < obj["date"] + 30):
 
 					# Compare ID
 					if id != obj["id"]:
