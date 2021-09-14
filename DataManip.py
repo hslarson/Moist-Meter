@@ -242,7 +242,7 @@ class DataTools():
 					break
 
 				elif obj["title"] in title:
-					logger.warning("Upload Time (from YT) = " + str(date) + ". Expected (from Data File) = " + str(obj["date"]) + ". Difference = " + str(abs(date - obj["date"])))
+					logger.warning(title + "Upload Time (from YT) = " + str(date) + ". Expected (from Data File) = " + str(obj["date"]) + ". Difference = " + str(abs(date - obj["date"])))
 
 			else:
 				logger.warning(f"Found No Matching Video for {obj['title']}")
