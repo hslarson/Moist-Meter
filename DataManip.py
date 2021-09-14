@@ -238,12 +238,13 @@ class DataTools():
 					if date != obj["date"]:
 						logger.warning("Corrected Date For \"" + str(obj["title"]) + ".\" " + str(obj["date"]) + " -> " + str(date))
 						contents[index]["date"] = date
+						altered = True
 
 					# Compare ID
 					if id != obj["id"]:
 						logger.warning("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id))
 						notifications.append(("ID Changed for " + str(obj["title"]) + ": " + str(obj["id"]) + " -> " + str(id), obj["id"]))
-						obj["id"] = id
+						contents[index]["id"] = id
 						altered = True
 					
 					break
