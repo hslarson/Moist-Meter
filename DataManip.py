@@ -230,7 +230,14 @@ class DataTools():
 
 			# Find the Video with Matching Upload Timestamp from Uploads
 			for title, id, date in uploads:
-				if (date > obj["date"] - 30) and (date < obj["date"] + 30):
+
+				# Will Break if 2 Moist Meters are Uploaded Within 4 Hours
+				if (date > obj["date"] - 14400 and date < obj["date"] + 14400) and ("moist meter" in title.lower()):
+
+					# Correct Date
+					if date != obj["date"]:
+						logger.warning("Corrected Date For \"" + str(obj["date"]) + "\"" + str(obj["date"]) + " -> " + str(date))
+						obj["date"] = date
 
 					# Compare ID
 					if id != obj["id"]:
@@ -240,10 +247,6 @@ class DataTools():
 						altered = True
 					
 					break
-
-				elif obj["title"] in title:
-					logger.warning(title + "Upload Time (from YT) = " + str(date) + ". Expected (from Data File) = " + str(obj["date"]) + ". Difference = " + str(abs(date - obj["date"])))
-
 			else:
 				logger.warning(f"Found No Matching Video for {obj['title']}")
 				notifications.append((f"Found No Matching Video for {obj['title']}", obj["id"]))
