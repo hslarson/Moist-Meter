@@ -237,7 +237,7 @@ class DataTools():
 					# Correct Date
 					if date != obj["date"]:
 						logger.warning("Corrected Date For \"" + str(obj["title"]) + ".\" " + str(obj["date"]) + " -> " + str(date))
-						obj["date"] = date
+						contents[index]["date"] = date
 
 					# Compare ID
 					if id != obj["id"]:
