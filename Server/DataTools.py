@@ -281,7 +281,6 @@ class DataTools():
 	# Checks if Two Videos Are the Same
 	def __video_match(video1, video2):
 
-		DATE_MATCH_MARGIN  = 300    # 5 Minutes
 		TITLE_MATCH_MARGIN = 259200 # 3 Days
 
 		# First Try to Match By ID
@@ -292,10 +291,6 @@ class DataTools():
 		elif video1["title"] == video2["title"]:
 			if (video1["date"] >= video2["date"] - TITLE_MATCH_MARGIN) and (video1["date"] <= video2["date"] + TITLE_MATCH_MARGIN):
 				return True
-
-		# Lastly See if the Videos Were Uploaded At Very Similar Times
-		elif (video1["date"] >= video2["date"] - DATE_MATCH_MARGIN) and (video1["date"] <= video2["date"] + DATE_MATCH_MARGIN):
-			return True
 
 		return False
 
