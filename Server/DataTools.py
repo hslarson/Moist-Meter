@@ -1,64 +1,9 @@
 from datetime import datetime
 from YouTube import YouTube
-import subprocess
+from FileOps import FileOps
 import json
 import time
 import os
-
-
-
-class FileOps():
-
-	SOURCE_DIR = os.path.dirname(os.path.realpath(__file__)) + '/'
-
-
-	# Constructor
-	def __init__(self):
-
-		file = open(FileOps.SOURCE_DIR + 'secrets.json', 'r')
-		if file.readable:
-			json_obj = json.load(file)
-
-			FileOps.ftp_host = json_obj["ftp_host"]
-			FileOps.ftp_username = json_obj["ftp_username"]
-			FileOps.ftp_password = json_obj["ftp_password"]
-
-			file.close()
-		else:
-			raise Exception("Could not Read secrets.json")
-
-
-	# A Helper Function for Removing Files
-	def delete_file(rel_local_path):
-		if os.path.isfile(FileOps.SOURCE_DIR + rel_local_path):
-			p = subprocess.run(["rm", FileOps.SOURCE_DIR + rel_local_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
-			if os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
-				raise Exception("Failed to Delete Local File: " + str(rel_local_path) + ". Args='" + " ".join(p.args) + "'")
-	
-
-	# Used to pull files from FTP server
-	# Gets the Data File by Default
-	def pull_file(absolute_remote_path="/htdocs/.data.json", rel_local_path=".data.json"):
-
-		ftp_url = 'ftp://' + FileOps.ftp_username + ':' + FileOps.ftp_password + '@' + FileOps.ftp_host + absolute_remote_path
-		p = subprocess.run(["wget", "-O", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-		
-		if not os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
-			raise Exception("Unable to Pull File " + str(absolute_remote_path) + " from Server. Args='" + " ".join(p.args) + "'")
-
-
-	# Pushes the data File to the FTP server
-	def put_file(absolute_remote_path="/htdocs/", rel_local_path=".data.json", remove_local_file=True):
-		
-		ftp_url = 'ftp://' + FileOps.ftp_username + ':' + FileOps.ftp_password + '@' + FileOps.ftp_host + absolute_remote_path
-		p = subprocess.run(["wput", "--reupload", "-A", "--basename=" + FileOps.SOURCE_DIR, FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-		
-		if (p.returncode):
-			raise Exception("Unable to Send File to Server. Args='" + " ".join(p.args) + "'")
-		elif remove_local_file:
-			FileOps.delete_file(rel_local_path)
-
 
 
 class DataTools():
@@ -94,33 +39,12 @@ class DataTools():
 			raise Exception("Failed to Load config.json")
 
 
-	# Saves the Local Config File
-	def save_config():
-
-		# Read the Config File
-		file = open(FileOps.SOURCE_DIR + 'config.json', 'r')
-		if file.readable:
-			contents = json.load(file)
-			file.close()
-		else:
-			raise Exception("config.json Could Not be Read")
-
-		# Alter the last poll/audit variables
-		contents["poll_settings"]["last_poll"] = DataTools.poll_settings["last_poll"] 
-		contents["audit_settings"]["last_audit"] = DataTools.audit_settings["last_audit"] 
-
-		# Replace the Contents of the Config File
-		file = open(FileOps.SOURCE_DIR + 'config.json', 'w')
-		if file.writable:
-			json.dump(contents, file, indent='\t', separators=(',',' : '))
-			file.close()
-		else:
-			raise Exception("config.json Could Not be Written To")
+	# **** PUBLIC FUNCTIONS ****
 
 
 	# Gets YoutTube Data and Checks for New Moist Meters
 	# If Found, Add Entry to Data File 
-	def poll(logger):
+	def poll(logger, custom_start_time=-1):
 
 		# Maintain the Desired Poll Frequency
 		if time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
@@ -129,7 +53,11 @@ class DataTools():
 		logger.info("Polling")
 
 		# Pull YouTube Data
-		uploads = YouTube.pull_uploads(after=DataTools.poll_settings["last_poll"])
+		start = DataTools.poll_settings["last_poll"]
+		if custom_start_time >= 0:
+			start = custom_start_time
+		
+		uploads = YouTube.pull_uploads(after=start)
 		moist_meters = DataTools.__filter_moist_meters(uploads)
 
 		# If a New Moist Meter is Found, Append It To the List
@@ -150,16 +78,18 @@ class DataTools():
 						known = True
 						break
 					
-				# Insert a New Object into the List
 				if not known:
+					# Send "New Moist Meter" Notification
 					notifications.append((mm_obj["title"], mm_obj["id"]))
 					
-					temp = {
-						"category" : "",
-						"score" : "",
-						"rated" : False
-					}
-					contents.insert(0, mm_obj.update(temp))
+					# Insert a New Object into the List
+					for index in range(len(contents)+1):
+						if index < len(contents) and mm_obj["date"] < contents[index]["date"]:
+							continue
+						
+						mm_obj.update({"category" : "", "score" : "", "rated" : False})
+						contents.insert(index, mm_obj)
+						break
 				
 			if len(notifications):
 				# Send Pushover Notifications
@@ -178,12 +108,14 @@ class DataTools():
 				notifications.clear()
 				logger.info("Sending Updated Data to Server")
 				FileOps.put_file(remove_local_file=False)
-		
+
 			FileOps.delete_file(".data.json")
 
+
 		# Update last_poll last (this way if errors are encountered the poll will retry from the previous last_poll)
+		if custom_start_time >= 0: return # Used by audit()
 		DataTools.poll_settings["last_poll"] = time.time()
-		DataTools.save_config()
+		DataTools.__save_config()
 		return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 
 	
@@ -196,20 +128,23 @@ class DataTools():
 			return DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"] - time.time()
 		else:
 			DataTools.audit_settings["last_audit"] = time.time()
-			DataTools.save_config()
+			DataTools.__save_config()
 
 		logger.info("Auditing")
 
-		# Load the Data File
-		contents = DataTools.__load_data()
-
-		# Pull Uploads
-		last_date = contents[-1]["date"] - 172800
-		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(after=last_date))
-		
+		FIRST_MOIST_METER = 1490511599 # Timestamp of First Moist Meter
 		altered = False
 		notifications = []
 
+		# Do a "Long Poll" to Check for Uncataloged Moist Meters
+		DataTools.poll(logger, FIRST_MOIST_METER)
+
+		# Load the Data File
+		contents = DataTools.__load_data()
+		
+		# Pull Uploads
+		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(after=FIRST_MOIST_METER))
+		
 		# Sort the List (Newest -> Oldest)
 		if (DataTools.__sort(contents)):
 			logger.warning("List Was Out of Order")
@@ -268,13 +203,40 @@ class DataTools():
 		
 		# Back Up the Data File
 		logger.info("Backing Up Data File")
-		DataTools.back_up()
+		DataTools.__back_up()
 
 		return DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"] - time.time()
 
 
+	# **** PRIVATE FUNCTIONS ****
+
+
+	# Saves the Local Config File
+	def __save_config():
+
+		# Read the Config File
+		file = open(FileOps.SOURCE_DIR + 'config.json', 'r')
+		if file.readable:
+			contents = json.load(file)
+			file.close()
+		else:
+			raise Exception("config.json Could Not be Read")
+
+		# Alter the last poll/audit variables
+		contents["poll_settings"]["last_poll"] = DataTools.poll_settings["last_poll"] 
+		contents["audit_settings"]["last_audit"] = DataTools.audit_settings["last_audit"] 
+
+		# Replace the Contents of the Config File
+		file = open(FileOps.SOURCE_DIR + 'config.json', 'w')
+		if file.writable:
+			json.dump(contents, file, indent='\t', separators=(',',' : '))
+			file.close()
+		else:
+			raise Exception("config.json Could Not be Written To")
+
+
 	# Creates a Local Copy of the .data.json
-	def back_up():
+	def __back_up():
 		
 		# Pull Data, Move it To Backups Folder, and Rename it
 		FileOps.pull_file(rel_local_path="Data_Backups/backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
