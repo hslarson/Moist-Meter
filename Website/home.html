@@ -45,7 +45,7 @@
 	<!-- Jumbotron (Top Banner) -->
 	<div class="jumbotron text-center p-4 m-0" style="background-image: url('./assets/jumbotron-icon-1.png');">
 		<h1 class="display-4 text-white">Every Moist Meter</h1>
-		<p class="mb-0" style="color:rgb(219, 219, 219)"><em>"I'm comin' in here raw, no rubber"</em> -Jesus</p>
+		<p id="quote" class="mb-0" style="color:rgb(219, 219, 219)"><em>"I'm comin' in here raw, no rubber"</em></p>
 	</div>
 
 	<!-- Toolbar -->
@@ -95,14 +95,22 @@
 
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
+
 		// Gets the Data File from the Server
-		async function get_json() {
-			return await $.getJSON(".data.json");
+		async function get_json(filename) {
+			return await $.getJSON(filename);
 		}
+
+		// Selects a Random Quote for the Top Banner
+		$(async function() {
+			var quotes = await get_json(".quotes.json");
+			var index = Math.floor(Math.random() * quotes.length);
+			$("#quote").html("<em>" + String(quotes[index]) + "</em>");
+		});
 
 		// Generates the Main Table
 		$(async function() {
-			var d = await get_json();
+			var d = await get_json(".data.json");
 			var out = [];
 
 			for (i in d) {
