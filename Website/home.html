@@ -84,11 +84,12 @@
 	
 	<!-- Bottom Banner -->
 	<div class="d-flex bg-light flex-wrap justify-content-between">
+		<div class="flex-column text-center p-2"><p id="copyright" class="px-2 py-1 m-0 text-secondary text-small"></p></div>
 		<div class="flex-column text-center p-2">
-			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">last_update=1629701589</p>
-		</div>
-		<div class="flex-column text-center p-2">
-			<p class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://github.com/hslarson/Moist-Meter">GitHub Repo</a></p>
+			<p class="px-2 py-1 m-0 text-small">
+				<a target="_blank" rel="noopener noreferrer" href="https://www.buymeacoffee.com/gunter1270r">Donate</a> | 
+				<a target="_blank" rel="noopener noreferrer" href="https://github.com/hslarson/Moist-Meter">GitHub Repo</a>
+			</p>
 		</div>
 	</div>
 
@@ -129,10 +130,9 @@
 			$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
 		});
 
-		// Replace Epoch Time with Formatted Date
+		// Update Copyright Text
 		$(function() {
-			var substr = $("#last_update").text().replace("last_update=", "");
-			$("#last_update").html( "© " + new Date().getFullYear().toString() + " | Last Updated: " + dateFormatter(substr));
+			$("#copyright").html( "© " + new Date().getFullYear().toString());
 		});
 	</script>
 	
