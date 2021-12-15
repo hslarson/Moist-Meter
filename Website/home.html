@@ -116,13 +116,20 @@
 
 			for (i in d) {
 				if (!d[i].rated) continue;
+				
+				
+				if (d[i].hasOwnProperty('moisty')) {
+					var icon = (String(d[i]['moisty']).includes("Worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
+					award = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon + "\" title=\"" + d[i]["moisty"] + "\">";
+				}
 
+				var award = (d[i].hasOwnProperty('moisty') ? "Moisty: " + d[i]["moisty"] : "");
 				out.push({
 					"num" : d.length - i,
 					"date" : d[i].date,
 					"category" : d[i].category,
 					"title_id" : d[i].title + "%%%" + d[i].id,
-					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score
+					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score + award
 				});
 			}
 			
@@ -194,6 +201,18 @@
 		}
 
 		function scoreFormatter(value) {
+			if (value.includes("Moisty")) {
+				var start = value.indexOf("Moisty");
+
+				var score = value.substr(0, start)
+				var award = value.substr(start);
+
+				var icon_url = (award.includes("Worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
+				var award_icon = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon_url + "\" title=\"" + award + "\">";
+
+				value = "<span class=\"row align-items-center ml-0\">" + score + award_icon + "</span>";
+			}
+			
 			return value.replace("000", "");
 		}
 	</script>
