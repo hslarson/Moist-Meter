@@ -116,20 +116,18 @@
 
 			for (i in d) {
 				if (!d[i].rated) continue;
-				
-				
-				if (d[i].hasOwnProperty('moisty')) {
-					var icon = (String(d[i]['moisty']).includes("Worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
-					award = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon + "\" title=\"" + d[i]["moisty"] + "\">";
-				}
 
-				var award = (d[i].hasOwnProperty('moisty') ? "Moisty: " + d[i]["moisty"] : "");
+				// Construct the Score String
+				var score_str = (isNaN(d[i].score) ? "000" : "") + String(d[i].score);
+				while (score_str.length < 3) { score_str = "0" + score_str; } // Pad front with 0's
+				score_str += (d[i].hasOwnProperty('moisty') ? "Moisty: " + d[i]["moisty"] : ""); // Add Award Description
+
 				out.push({
 					"num" : d.length - i,
 					"date" : d[i].date,
 					"category" : d[i].category,
 					"title_id" : d[i].title + "%%%" + d[i].id,
-					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score + award
+					"score" : score_str
 				});
 			}
 			
@@ -201,6 +199,8 @@
 		}
 
 		function scoreFormatter(value) {
+			while (value[0] == '0') { value = value.slice(1) }
+
 			if (value.includes("Moisty")) {
 				var start = value.indexOf("Moisty");
 
@@ -212,8 +212,7 @@
 
 				value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
 			}
-			
-			return value.replace("000", "");
+			return value;
 		}
 	</script>
 
