@@ -202,20 +202,22 @@
 			while (value[0] == '0') { value = value.slice(1) }
 
 			if (value.includes("%%%")) {
-				var start = value.indexOf("%%%");
 
+				// Separate the String
+				var start = value.indexOf("%%%");
 				var score = value.substr(0, start)
 				var award = value.substr(start + 3);
 
-				var icon_url = "#";
-				if (award.toLowerCase().includes("worst"))
-					icon_url = 'assets/moisty-worst.png';
-				else if (award.toLowerCase().includes("best"))
-					icon_url = 'assets/moisty-best.png';
+				// Add Award Image to the Score
+				if (award.toLowerCase().includes("worst") || (award.toLowerCase().includes("best"))) {
 
-				var award_icon = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon_url + "\" title=\"" + award + "\">";
+					var icon_url = (award.toLowerCase().includes("worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
+					var award_icon = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon_url + "\" title=\"" + award + "\">";
 
-				value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
+					value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
+				}
+				else
+					value = score;
 			}
 			return value;
 		}
