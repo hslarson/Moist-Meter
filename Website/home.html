@@ -120,7 +120,7 @@
 				// Construct the Score String
 				var score_str = (isNaN(d[i].score) ? "000" : "") + String(d[i].score);
 				while (score_str.length < 3) { score_str = "0" + score_str; } // Pad front with 0's
-				score_str += (d[i].hasOwnProperty('moisty') ? "Moisty: " + d[i]["moisty"] : ""); // Add Award Description
+				score_str += (d[i].hasOwnProperty('award') ? "%%%" + d[i]["award"] : ""); // Add Award
 
 				out.push({
 					"num" : d.length - i,
@@ -201,13 +201,18 @@
 		function scoreFormatter(value) {
 			while (value[0] == '0') { value = value.slice(1) }
 
-			if (value.includes("Moisty")) {
-				var start = value.indexOf("Moisty");
+			if (value.includes("%%%")) {
+				var start = value.indexOf("%%%");
 
 				var score = value.substr(0, start)
-				var award = value.substr(start);
+				var award = value.substr(start + 3);
 
-				var icon_url = (award.includes("Worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
+				var icon_url = "#";
+				if (award.toLowerCase().includes("worst"))
+					icon_url = 'assets/moisty-worst.png';
+				else if (award.toLowerCase().includes("best"))
+					icon_url = 'assets/moisty-best.png';
+
 				var award_icon = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon_url + "\" title=\"" + award + "\">";
 
 				value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
