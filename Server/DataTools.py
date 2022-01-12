@@ -179,11 +179,18 @@ class DataTools():
 						contents[index]["date"] = mm_obj.date
 						altered = True
 
-					# Compare ID
+					# Correct ID
 					if mm_obj.id != data_obj["id"]:
 						logger.warning("ID Changed for " + str(data_obj["title"]) + ": " + str(data_obj["id"]) + " -> " + str(mm_obj.id))
 						notifications.append(("ID Changed for " + str(data_obj["title"]) + ": " + str(data_obj["id"]) + " -> " + str(mm_obj.id), mm_obj.id))
 						contents[index]["id"] = mm_obj.id
+						altered = True
+
+					# Correct Title
+					if mm_obj.title != data_obj["title"]:
+						logger.warning("Title Changed for " + str(data_obj["title"]) + ". New Title: " + str(mm_obj.title))
+						notifications.append(("Title Changed for " + str(data_obj["title"]) + ". New Title: " + str(mm_obj.title), mm_obj.id))
+						contents[index]["title"] = mm_obj.title
 						altered = True
 					
 					break
