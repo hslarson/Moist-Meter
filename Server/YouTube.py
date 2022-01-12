@@ -8,6 +8,33 @@ import os
 
 class YouTube():
 
+	class Video():
+		def __init__(self, title, date, id):
+			self.title = title
+			self.date = date
+			self.id = id
+
+		def __eq__(self, other):
+			TITLE_MATCH_MARGIN = 259200 # 3 Days
+
+			# First Try to Match By ID
+			if self.id == other.id:
+				return True
+
+			# Next See if the Videos Have the Same Title AND Were Uploaded Around the Same Time
+			elif self.title == other.title:
+				if (self.date >= other.date - TITLE_MATCH_MARGIN) and (self.date <= other.date + TITLE_MATCH_MARGIN):
+					return True
+
+			return False
+
+		def from_dict(video_obj: dict):
+			return YouTube.Video(video_obj["title"], video_obj["date"], video_obj["id"])
+
+		def is_moist_meter(self):
+			return ("Moist Meter |" in self.title) or ("Moist Meter:" in self.title)
+
+
 	rqst = requests.session()
 	API_BASE_URL = "https://www.googleapis.com/youtube/v3/"
 
@@ -93,15 +120,15 @@ class YouTube():
 
 				title = item["snippet"]["title"]
 				vid_id = item["snippet"]["resourceId"]["videoId"]
-				big_list.append((title, vid_id, tm))
+				big_list.append(YouTube.Video(title, tm, vid_id))
 
 		return big_list
 
 
 	# Converts YouTube's Time String into a UTC Timestamp
 	def __str2timestamp(date_string):
-		# Example: "2021-07-15T14:12:16Z"
-
+		
+		# Example date_string: "2021-07-15T14:12:16Z"
 		date = date_string[:date_string.find("T")]
 		time = date_string[date_string.find("T")+1:-1]
 

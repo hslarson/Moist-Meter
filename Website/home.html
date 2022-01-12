@@ -117,6 +117,9 @@
 			for (i in d) {
 				if (!d[i].rated) continue;
 
+				// Format Title
+				var title = String(d[i].title).replace("Moist Meter:", "").replace("Moist Meter |", "").trim()
+
 				// Construct the Score String
 				var score_str = (isNaN(d[i].score) ? "000" : "") + String(d[i].score);
 				while (score_str.length < 3) { score_str = "0" + score_str; } // Pad front with 0's
@@ -126,7 +129,7 @@
 					"num" : d.length - i,
 					"date" : d[i].date,
 					"category" : d[i].category,
-					"title_id" : d[i].title + "%%%" + d[i].id,
+					"title_id" : title + "%%%" + d[i].id,
 					"score" : score_str
 				});
 			}

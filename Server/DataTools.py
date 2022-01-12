@@ -74,24 +74,32 @@ class DataTools():
 				# Filter Duplicates
 				known = False
 				for obj in contents:
-					if DataTools.__video_match(obj, mm_obj):
+					if mm_obj == YouTube.Video.from_dict(obj):
 						known = True
 						break
 					
 				if not known:
 					# Send "New Moist Meter" Notification
-					notifications.append((mm_obj["title"], mm_obj["id"]))
+					notifications.append((mm_obj.title, mm_obj.id))
 					
 					# Insert a New Object into the List
 					for index in range(len(contents)+1):
-						if index < len(contents) and mm_obj["date"] < contents[index]["date"]:
+						if index < len(contents) and mm_obj.date < contents[index]["date"]:
 							continue
 						
-						mm_obj.update({"category" : "", "score" : "", "rated" : False})
-						contents.insert(index, mm_obj)
+						video_obj = {
+							"title" : mm_obj.title,
+							"id" : mm_obj.id,
+							"date" : mm_obj.date,
+							"category" : "",
+							"score" : "",
+							"rated" : False
+						}
+						contents.insert(index, video_obj)
 						break
 				
 			if len(notifications):
+
 				# Send Pushover Notifications
 				for title, id in notifications:
 					logger.info("Found New Moist Meter: " + str(title))
@@ -118,7 +126,7 @@ class DataTools():
 		DataTools.__save_config()
 		return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 
-	
+
 	# Pulls te data file and makes sure everything is correct
 	# (i.e. No Duplicates, Sorted New->Old, Valid Video ID's)
 	def audit(logger):
@@ -141,15 +149,15 @@ class DataTools():
 
 		# Load the Data File
 		contents = DataTools.__load_data()
-		
-		# Pull Uploads
-		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(after=FIRST_MOIST_METER))
-		
+
 		# Sort the List (Newest -> Oldest)
 		if (DataTools.__sort(contents)):
 			logger.warning("List Was Out of Order")
 			altered = True
-
+		
+		# Pull Uploads
+		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(after=FIRST_MOIST_METER))
+		
 		# Iterate Over Uploads
 		for index, data_obj in enumerate(contents):
 			
@@ -163,19 +171,19 @@ class DataTools():
 
 			# Find the Video with Matching Upload Timestamp from Uploads
 			for mm_obj in moist_meters:
-				if DataTools.__video_match(data_obj, mm_obj):
+				if mm_obj == YouTube.Video.from_dict(data_obj):
 
 					# Correct Date
-					if mm_obj["date"] != data_obj["date"]:
-						logger.warning("Corrected Date For \"" + str(data_obj["title"]) + ".\" " + str(data_obj["date"]) + " -> " + str(mm_obj["date"]))
-						contents[index]["date"] = mm_obj["date"]
+					if mm_obj.date != data_obj["date"]:
+						logger.warning("Corrected Date For \"" + str(data_obj["title"]) + ".\" " + str(data_obj["date"]) + " -> " + str(mm_obj.date))
+						contents[index]["date"] = mm_obj.date
 						altered = True
 
 					# Compare ID
-					if mm_obj["id"] != data_obj["id"]:
-						logger.warning("ID Changed for " + str(data_obj["title"]) + ": " + str(data_obj["id"]) + " -> " + str(mm_obj["id"]))
-						notifications.append(("ID Changed for " + str(data_obj["title"]) + ": " + str(data_obj["id"]) + " -> " + str(mm_obj["id"]), mm_obj["id"]))
-						contents[index]["id"] = mm_obj["id"]
+					if mm_obj.id != data_obj["id"]:
+						logger.warning("ID Changed for " + str(data_obj["title"]) + ": " + str(data_obj["id"]) + " -> " + str(mm_obj.id))
+						notifications.append(("ID Changed for " + str(data_obj["title"]) + ": " + str(data_obj["id"]) + " -> " + str(mm_obj.id), mm_obj.id))
+						contents[index]["id"] = mm_obj.id
 						altered = True
 					
 					break
@@ -184,6 +192,7 @@ class DataTools():
 				notifications.append((f"Found No Matching Video for {data_obj['title']}", data_obj["id"]))
 		
 		if altered:
+
 			# Upload the File if Any Changes Were Made
 			file = open(FileOps.SOURCE_DIR + ".data.json", 'w')
 			if file.writable:
@@ -276,41 +285,11 @@ class DataTools():
 			lindex += 1
 
 		return altered
-
-
-	# Checks if Two Videos Are the Same
-	def __video_match(video1, video2):
-
-		TITLE_MATCH_MARGIN = 259200 # 3 Days
-
-		# First Try to Match By ID
-		if video1["id"] == video2["id"]:
-			return True
-
-		# Next See if the Videos Have the Same Title AND Were Uploaded Around the Same Time
-		elif video1["title"] == video2["title"]:
-			if (video1["date"] >= video2["date"] - TITLE_MATCH_MARGIN) and (video1["date"] <= video2["date"] + TITLE_MATCH_MARGIN):
-				return True
-
-		return False
-
 	
+
 	# Separate Moist Meters from Normal Uploads
 	def __filter_moist_meters(upload_list):
-		out = []
-		mm_count = 0
-		for title, id, date in upload_list:
-			if "Moist Meter: " in title or "Moist Meter | " in title:
-				mm_count += 1
-
-				video_obj = {
-					"title" : title.replace("Moist Meter: ", "").replace("Moist Meter | ", ""),
-					"id" : id,
-					"date" : date
-				}
-				out.append(video_obj)
-
-		return out
+		return [vid for vid in upload_list if vid.is_moist_meter()]
 
 
 	# Sends a Pushover Notification 
