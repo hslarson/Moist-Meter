@@ -23,3 +23,4 @@
 - Even though the video identification system is automatic, I still have to score the videos manually so new Moist Meters may take a day or two to appear on the list
 - I'm trying to track 'Moisty' award winners, but this is a manual process and I may stop doing so later on
 - If you want to support this project, consider donating using the above link so I can buy a custom domain name
+- There is also a link to a Google Form above which you can use to contact me if you notice any mistakes/bugs
