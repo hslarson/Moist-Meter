@@ -47,7 +47,7 @@ class DataTools():
 	def poll(logger, custom_start_time=-1):
 
 		# Maintain the Desired Poll Frequency
-		if time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
+		if custom_start_time < 0 and time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
 			return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 
 		logger.info("Polling")
