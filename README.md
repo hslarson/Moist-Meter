@@ -1,5 +1,5 @@
 <a href="https://moistmeter.42web.io/#" target="_blank" rel="noopener noreferrer">
-	<img src="https://i.ibb.co/r6NzPTs/woo-gif.gif" title="Go to Site" alt="Go to Site" />
+	<img src="https://moistmeter.42web.io/assets/woo-gif.gif" title="Go to Site" alt="Go to Site" />
 </a>
 <br><br>
 
