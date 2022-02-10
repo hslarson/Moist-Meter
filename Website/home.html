@@ -45,7 +45,7 @@
 	<!-- Jumbotron (Top Banner) -->
 	<div class="jumbotron text-center p-4 m-0" style="background-image: url('./assets/jumbotron-icon-1.png');">
 		<h1 class="display-4 text-white">Every Moist Meter</h1>
-		<p class="mb-0" style="color:rgb(219, 219, 219)"><em>"I'm comin' in here raw, no rubber"</em> -Jesus</p>
+		<p id="quote" class="mb-0" style="color:rgb(219, 219, 219)"></p>
 	</div>
 
 	<!-- Toolbar -->
@@ -85,35 +85,52 @@
 	<!-- Bottom Banner -->
 	<div class="d-flex bg-light flex-wrap justify-content-between">
 		<div class="flex-column text-center p-2">
-			<p id="last_update" class="px-2 py-1 m-0 text-secondary text-small">last_update=1629701589</p>
+			<p class="px-2 py-1 m-0 text-small">
+				<a target="_blank" rel="noopener noreferrer" href="https://www.buymeacoffee.com/gunter1270r">Donate</a> | 
+				<a target="_blank" rel="noopener noreferrer" href="https://github.com/hslarson/Moist-Meter">GitHub Repo</a>
+			</p>
 		</div>
-		<div class="flex-column text-center p-2">
-			<p class="px-2 py-1 m-0 text-small"><a target="_blank" rel="noopener noreferrer" href="https://github.com/hslarson/Moist-Meter">GitHub Repo</a></p>
-		</div>
+		<div class="flex-column text-center p-2"><p id="copyright" class="px-2 py-1 m-0 text-secondary text-small"></p></div>
 	</div>
 
 
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
+
 		// Gets the Data File from the Server
-		async function get_json() {
-			return await $.getJSON(".data.json");
+		async function get_json(filename) {
+			return await $.getJSON(filename);
 		}
+
+		// Selects a Random Quote for the Top Banner
+		$(async function() {
+			var quotes = await get_json(".quotes.json");
+			var index = Math.floor(Math.random() * quotes.length);
+			$("#quote").html("<em>" + String(quotes[index]) + "</em>");
+		});
 
 		// Generates the Main Table
 		$(async function() {
-			var d = await get_json();
+			var d = await get_json(".data.json");
 			var out = [];
 
 			for (i in d) {
 				if (!d[i].rated) continue;
 
+				// Format Title
+				var title = String(d[i].title).replace("Moist Meter:", "").replace("Moist Meter |", "").trim()
+
+				// Construct the Score String
+				var score_str = (isNaN(d[i].score) ? "000" : "") + String(d[i].score);
+				while (score_str.length < 3) { score_str = "0" + score_str; } // Pad front with 0's
+				score_str += (d[i].hasOwnProperty('award') ? "%%%" + d[i]["award"] : ""); // Add Award
+
 				out.push({
 					"num" : d.length - i,
 					"date" : d[i].date,
 					"category" : d[i].category,
-					"title_id" : d[i].title + "%%%" + d[i].id,
-					"score" : (isNaN(d[i].score) ? "000" : "") + d[i].score
+					"title_id" : title + "%%%" + d[i].id,
+					"score" : score_str
 				});
 			}
 			
@@ -121,10 +138,9 @@
 			$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
 		});
 
-		// Replace Epoch Time with Formatted Date
+		// Update Copyright Text
 		$(function() {
-			var substr = $("#last_update").text().replace("last_update=", "");
-			$("#last_update").html( "© " + new Date().getFullYear().toString() + " | Last Updated: " + dateFormatter(substr));
+			$("#copyright").html( "© 2021-" + new Date().getFullYear().toString());
 		});
 	</script>
 	
@@ -186,7 +202,27 @@
 		}
 
 		function scoreFormatter(value) {
-			return value.replace("000", "");
+			while (value[0] == '0') { value = value.slice(1) }
+
+			if (value.includes("%%%")) {
+
+				// Separate the String
+				var start = value.indexOf("%%%");
+				var score = value.substr(0, start)
+				var award = value.substr(start + 3);
+
+				// Add Award Image to the Score
+				if (award.toLowerCase().includes("worst") || (award.toLowerCase().includes("best"))) {
+
+					var icon_url = (award.toLowerCase().includes("worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
+					var award_icon = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon_url + "\" title=\"" + award + "\">";
+
+					value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
+				}
+				else
+					value = score;
+			}
+			return value;
 		}
 	</script>
 

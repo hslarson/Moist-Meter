@@ -1,5 +1,4 @@
 <?php
-    include('./update.php');
     header('Content-Type: application/json');
 
     // Parse the Request
@@ -27,9 +26,6 @@
             
             // Save the File
             file_put_contents("../.data.json", json_encode($data, JSON_PRETTY_PRINT));
-            
-            // Update the last_update Tag
-            update();
             break;
         }
     }
