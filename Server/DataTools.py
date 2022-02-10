@@ -42,7 +42,7 @@ class DataTools():
 	# **** PUBLIC FUNCTIONS ****
 
 
-	# Gets YoutTube Data and Checks for New Moist Meters
+	# Gets YouTube Data and Checks for New Moist Meters
 	# If Found, Add Entry to Data File 
 	def poll(logger, custom_start_time=-1):
 
@@ -57,7 +57,7 @@ class DataTools():
 		if custom_start_time >= 0:
 			start = custom_start_time
 		
-		uploads = YouTube.pull_uploads(after=start)
+		uploads = YouTube.pull_uploads(start)
 		moist_meters = DataTools.__filter_moist_meters(uploads)
 
 		# If a New Moist Meter is Found, Append It To the List
@@ -127,7 +127,7 @@ class DataTools():
 		return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 
 
-	# Pulls te data file and makes sure everything is correct
+	# Pulls the data file and makes sure everything is correct
 	# (i.e. No Duplicates, Sorted New->Old, Valid Video ID's)
 	def audit(logger):
 
@@ -144,7 +144,7 @@ class DataTools():
 		altered = False
 		notifications = []
 
-		# Do a "Long Poll" to Check for Uncataloged Moist Meters
+		# Do a "Long Poll" to Check for Uncatalogued Moist Meters
 		DataTools.poll(logger, FIRST_MOIST_METER)
 
 		# Load the Data File
@@ -156,7 +156,7 @@ class DataTools():
 			altered = True
 		
 		# Pull Uploads
-		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(after=FIRST_MOIST_METER))
+		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(FIRST_MOIST_METER))
 		
 		# Iterate Over Uploads
 		for index, data_obj in enumerate(contents):

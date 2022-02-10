@@ -47,31 +47,21 @@ class YouTube():
 			raise Exception("Failed to Read secrets.json")
 
 
-	# Returns a List of Every Video Uploaded by a Specific Youtuber
-	def pull_uploads(username="penguinz0", before=None, after=None):
+	# Returns a List of Every Video Uploaded by Penguinz0
+	def pull_uploads(after):
 
-		window =  (before if before else time.time())
-		window -= (after if after else 0)
-
+		window = time.time() - (after if after else 0)
 		max_extries = 50
 		if window < 3600 * 8:
 			max_extries = 3
 		elif window < 3600 * 24 * 7:
 			max_extries = 20
 
-		return YouTube.get_videos_by_playlist(YouTube.get_playlist_id(username), before, after, max_extries)
+		return YouTube.get_videos_by_playlist(after=after, block_size=max_extries)
 
 
-	# Get Playlist ID for a Specific Channel
-	def get_playlist_id(username, playlist_name="uploads"):
-
-		response = YouTube.rqst.get(YouTube.API_BASE_URL + "channels?part=contentDetails&forUsername={u}&key={key}".format(key=YouTube.API_KEY, u=username))
-		return response.json()["items"][0]["contentDetails"]["relatedPlaylists"][playlist_name]
-
-
-	# Returns all of the Videos in a Given Playlist
-	# Videos Represented by a Tuple with the Format: (title, video id, utc timestamp)
-	def get_videos_by_playlist(playlist_id, before=None, after=None, block_size=20):
+	# Returns All of the Videos in a Given Playlist as Video Objects
+	def get_videos_by_playlist(username="penguinz0", playlist_name="uploads", before=None, after=None, block_size=20):
 
 		if (before and (after > before)):
 			raise Exception("In get_videos_by_playlist(): 'after' should not be greater then 'before'")
@@ -79,6 +69,10 @@ class YouTube():
 		big_list = []
 		running = True
 		first = True
+
+		# Get Playlist id
+		response = YouTube.rqst.get(YouTube.API_BASE_URL + "channels?part=contentDetails&forUsername={u}&key={key}".format(key=YouTube.API_KEY, u=username))
+		playlist_id = response.json()["items"][0]["contentDetails"]["relatedPlaylists"][playlist_name]
 
 		while running:
 
