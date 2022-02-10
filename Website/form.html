@@ -167,7 +167,8 @@
                 
                 var obj = data[i];
                 if (!obj.rated) {
-                    $carousel.append( create_slide(obj.title, obj.id, first, embed) );
+                    var short_title = String(obj.title).replace("Moist Meter:", "").replace("Moist Meter |", "").trim()
+                    $carousel.append( create_slide(short_title, obj.id, first, embed) );
                     if (first) {first=false;}
                 }
             }
