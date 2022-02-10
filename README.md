@@ -17,6 +17,13 @@
 
 <hr>
 
+### Navigation:
+- Clicking on '#' sorts videos by upload date (may be hidden on mobile devices)
+- Clicking on 'Title' sorts videos alphabetically by title
+- Clicking on 'Rating' sorts videos by score
+- Search for a specific title using the search box
+- Filter categories using the dropdown menu on the right side of the page
+
 ### Notes:
 - The website only tracks "official" Moist Meters (i.e. YouTube videos uploaded by penguinz0 with 'Moist Meter' in the title)
 - It is possible to add unofficial Moist Meters manually, but I can't ensure that I'll catch all of them so I'm choosing not to include them at this time.
