@@ -62,7 +62,7 @@ class DataTools():
 			start = custom_start_time
 			last_id = None
 		
-		uploads = YouTube.pull_uploads(start, last_id)
+		uploads = YouTube.pull_uploads(start)
 		if len(uploads):
 			print("Last Known Video = \"" + str(uploads[0].title)+ ".\" Date=" + str(uploads[0].date))
 			DataTools.poll_settings["last_vid"] = uploads[0].date
