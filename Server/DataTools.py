@@ -88,7 +88,7 @@ class DataTools():
 					
 				if not known:
 					# Send "New Moist Meter" Notification
-					notifications.append((mm_obj.title, mm_obj.id))
+					notifications.append((mm_obj.short_title(), mm_obj.id))
 					
 					# Insert a New Object into the List
 					for index in range(len(contents)+1):

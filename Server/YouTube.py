@@ -27,6 +27,9 @@ class YouTube():
 					return True
 
 			return False
+		
+		def short_title(self):
+			return str(self.title).replace("Moist Meter:", "").replace("Moist Meter |", "").strip()
 
 		def from_dict(video_obj: dict):
 			return YouTube.Video(video_obj["title"], video_obj["date"], video_obj["id"])
