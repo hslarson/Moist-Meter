@@ -33,7 +33,7 @@ class DataTools():
 
 			DataTools.pushover_settings = config_obj["pushover_settings"]
 			DataTools.poll_settings = config_obj["poll_settings"]
-			DataTools.poll_settings["last_known_id"] = None
+			DataTools.poll_settings["last_vid"] = DataTools.poll_settings["last_poll"]
 			DataTools.audit_settings = config_obj["audit_settings"]
 		
 			config_file.close()
@@ -57,17 +57,15 @@ class DataTools():
 		logger.info("Polling")
 
 		# Pull YouTube Data
-		start = DataTools.poll_settings["last_poll"]
-		last_id = DataTools.poll_settings["last_known_id"]
-
+		start = DataTools.poll_settings["last_vid"]
 		if custom_start_time >= 0:
 			start = custom_start_time
 			last_id = None
 		
 		uploads = YouTube.pull_uploads(start, last_id)
 		if len(uploads):
-			print("Last Known Video = \"" + str(uploads[0].title)+ ".\" ID=" + str(uploads[0].id))
-			DataTools.poll_settings["last_known_id"] = uploads[0].id
+			print("Last Known Video = \"" + str(uploads[0].title)+ ".\" Date=" + str(uploads[0].date))
+			DataTools.poll_settings["last_vid"] = uploads[0].date
 
 		moist_meters = DataTools.__filter_moist_meters(uploads)
 

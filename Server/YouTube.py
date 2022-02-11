@@ -48,33 +48,16 @@ class YouTube():
 
 
 	# Returns a List of Every Video Uploaded by Penguinz0
-	def pull_uploads(after, last_known_id=None):
-		before = time.time()
-		min_after = after - (3600*24)
+	def pull_uploads(after):
 
-		while True:
-			window = before - (after if after else 0)
-			max_extries = 50
-			if window < 3600 * 8:
-				max_extries = 3
-			elif window < 3600 * 24 * 7:
-				max_extries = 20
+		window = time.time() - (after if after else 0)
+		max_extries = 50
+		if window < 3600 * 8:
+			max_extries = 3
+		elif window < 3600 * 24 * 7:
+			max_extries = 20
 
-			vids = YouTube.get_videos_by_playlist(before=before, after=after, block_size=max_extries)
-			if not last_known_id: return vids
-
-			out = []
-			for v in vids:
-				if v.id == last_known_id:
-					print("Found Last Known")
-					return out
-				else:
-					out.append(v)
-			else:
-				print("Last Known Not Found")
-				before = after
-				after -= (3600*4)
-				if after < min_after: return out
+		return YouTube.get_videos_by_playlist(after=after, block_size=max_extries)
 
 
 	# Returns All of the Videos in a Given Playlist as Video Objects
