@@ -1,4 +1,5 @@
 from datetime import datetime
+from turtle import up
 from YouTube import YouTube
 from FileOps import FileOps
 import json
@@ -32,11 +33,14 @@ class DataTools():
 
 			DataTools.pushover_settings = config_obj["pushover_settings"]
 			DataTools.poll_settings = config_obj["poll_settings"]
+			DataTools.poll_settings["last_known_id"] = None
 			DataTools.audit_settings = config_obj["audit_settings"]
 		
 			config_file.close()
 		else:
 			raise Exception("Failed to Load config.json")
+
+		
 
 
 	# **** PUBLIC FUNCTIONS ****
@@ -54,10 +58,17 @@ class DataTools():
 
 		# Pull YouTube Data
 		start = DataTools.poll_settings["last_poll"]
+		last_id = DataTools.poll_settings["last_known_id"]
+
 		if custom_start_time >= 0:
 			start = custom_start_time
+			last_id = None
 		
-		uploads = YouTube.pull_uploads(start)
+		uploads = YouTube.pull_uploads(start, last_id)
+		if len(uploads):
+			print("Last Known Video = \"" + str(uploads[0].title)+ ".\" ID=" + str(uploads[0].id))
+			DataTools.poll_settings["last_known_id"] = uploads[0].id
+
 		moist_meters = DataTools.__filter_moist_meters(uploads)
 
 		# If a New Moist Meter is Found, Append It To the List
