@@ -36,7 +36,7 @@ def error_counter():
 	t_cutoff = time.time() - (WINDOW*60)
 	fail = (len(errors) == RETRIES) and (min(errors) > t_cutoff)
 	
-	if fail: logger.error("Too Many Errors Occured, Exiting...")
+	if fail: logger.error("Too Many Errors Occurred, Exiting...")
 	return (not fail)
 
 
@@ -49,7 +49,7 @@ while running:
 		next_poll  = DataTools.poll(logger)
 		next_audit = DataTools.audit(logger)
 
-		logger.info("Sleeping Until " + ("Next Poll" if next_poll < next_audit else "Next Audit") + " in " + str(round(max(min(next_poll, next_audit),0))) + " Seconds")
+		logger.debug("Sleeping Until " + ("Next Poll" if next_poll < next_audit else "Next Audit") + " in " + str(round(max(min(next_poll, next_audit),0))) + " Seconds")
 		time.sleep(max(min(next_poll, next_audit),0))
 	
 	except KeyboardInterrupt:
