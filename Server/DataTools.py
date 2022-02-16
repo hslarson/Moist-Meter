@@ -54,7 +54,7 @@ class DataTools():
 		if custom_start_time < 0 and time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
 			return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
 
-		logger.info("Polling")
+		logger.debug("Polling")
 
 		# Pull YouTube Data
 		start = DataTools.poll_settings["last_vid"]
@@ -146,7 +146,7 @@ class DataTools():
 			DataTools.audit_settings["last_audit"] = time.time()
 			DataTools.__save_config()
 
-		logger.info("Auditing")
+		logger.debug("Auditing")
 
 		FIRST_MOIST_METER = 1490511599 # Timestamp of First Moist Meter
 		altered = False
@@ -226,7 +226,7 @@ class DataTools():
 			notifications.clear()
 		
 		# Back Up the Data File
-		logger.info("Backing Up Data File")
+		logger.debug("Backing Up Data File")
 		DataTools.__back_up()
 
 		return DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"] - time.time()
