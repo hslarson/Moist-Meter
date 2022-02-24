@@ -63,7 +63,7 @@ while running:
 		time.sleep(max(min(next_poll, next_audit),0))
 	
 	except BaseException as err:
-		running = not handler(err)
+		running = not handler(err, logger)
 
 
 logger.info("Session Ended")
