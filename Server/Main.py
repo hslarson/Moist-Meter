@@ -1,8 +1,14 @@
+# Modules
 from DataTools import DataTools
 from pathlib import Path
 import logging
 import time
 import os
+
+# Exceptions
+from urllib3.exceptions import NewConnectionError
+from requests.exceptions import ConnectionError
+from socket import gaierror
 
 
 # Initialize the log File
@@ -23,21 +29,25 @@ logger.setLevel(logging.INFO)
 logger.info("Session Started. Welcome!")
 
 
-# Kill the program if more than 10 errors are encountered in 15 minutes
-errors = []
-def error_counter():
-	global errors
-	RETRIES = 10
-	WINDOW  = 15 #minutes
-	
-	errors.append(time.time())
-	while len(errors) > RETRIES: errors.pop(0)
+# Handles Exceptions, Returns True for Fatal Errors
+def handler(exception, logger):
 
-	t_cutoff = time.time() - (WINDOW*60)
-	fail = (len(errors) == RETRIES) and (min(errors) > t_cutoff)
-	
-	if fail: logger.error("Too Many Errors Occurred, Exiting...")
-	return (not fail)
+	# Handle Interrupts
+	if type(exception) == KeyboardInterrupt:
+		logger.info("Interrupt Detected. Goodbye!")
+		return True
+
+	# Display Exception Traceback in Log File
+	else:
+		logger.exception("Exception: ")
+
+	# Handle Specific Errors
+	if type(exception) in {NewConnectionError, ConnectionError, gaierror}:
+		time.sleep(60)
+		return False
+
+	else:
+		return True
 
 
 # Main Loop
@@ -52,15 +62,8 @@ while running:
 		logger.debug("Sleeping Until " + ("Next Poll" if next_poll < next_audit else "Next Audit") + " in " + str(round(max(min(next_poll, next_audit),0))) + " Seconds")
 		time.sleep(max(min(next_poll, next_audit),0))
 	
-	except KeyboardInterrupt:
-		logger.info("Interrupt Detected. Goodbye!")
-		running = False
-		continue
-	except:
-		logger.exception("Exception: ")
-		time.sleep(60)
-		running = error_counter()
-		continue
+	except BaseException as err:
+		running = not handler(err)
 
 
 logger.info("Session Ended")
