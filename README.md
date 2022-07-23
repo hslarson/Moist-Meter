@@ -9,8 +9,9 @@
 <img src="https://img.shields.io/github/last-commit/hslarson/Moist-meter" alt="github last commit" />
 <img src="https://img.shields.io/maintenance/yes/2022" alt="maintenance status" />
 <img src="https://img.shields.io/github/license/hslarson/moist-meter" alt="github license" />
-<a href="https://docs.google.com/forms/d/e/1FAIpQLScggit1tZFNKtu0xbJKTKuDEvtCjLYFtma41gjJiQzurMvqIg/viewform?usp=sf_link"><img src="https://img.shields.io/badge/contact%20me-google%20form-blue" /></a>
 
+
+Email: contact@moistmeter.org
 <hr>
 
 ### Navigation:
@@ -25,4 +26,4 @@
 - It is possible to add unofficial Moist Meters manually, but I can't ensure that I'll catch all of them so I'm choosing not to include them at this time.
 - Even though the video identification system is automatic, I still have to score the videos manually so new Moist Meters may take a day or two to appear on the list
 - I'm trying to track 'Moisty' award winners, but this is a manual process and I may stop doing so later on
-- There is also a link to a Google Form above which you can use to contact me if you notice any mistakes/bugs
+- Use the email above to contact me if you notice any mistakes/bugs
