@@ -36,18 +36,14 @@
     <meta property="og:image:alt" content="Water Drop Icon" />
 
 	<!-- Scripts -->
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-		integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
+	<link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/4.6.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.css">
 
 	<!-- Loads 3rd Party Scripts -->
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-		integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-		crossorigin="anonymous"></script>
-	<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.6.0.min.js"></script>
+	<script src="https://ajax.aspnetcdn.com/ajax/bootstrap/4.6.0/bootstrap.min.js"></script>
+	<script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
 </head>
 
 
@@ -224,7 +220,7 @@
 				if (award.toLowerCase().includes("worst") || (award.toLowerCase().includes("best"))) {
 
 					var icon_url = (award.toLowerCase().includes("worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
-					var award_icon = "<img class=\"d-none d-lg-block ml-1\" src=\"" + icon_url + "\" title=\"" + award + "\">";
+					var award_icon = "<img class=\"d-none d-lg-block ml-1\" width=\"16\" height=\"16\" src=\"" + icon_url + "\" title=\"" + award + "\">";
 
 					value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
 				}
