@@ -120,10 +120,10 @@
 			var out = [];
 
 			for (i in d) {
-				if (!d[i].rated) continue;
+				if (!d[i].rated) {continue;}
 
 				// Format Title
-				var title = String(d[i].title).replace("Moist Meter:", "").replace("Moist Meter |", "").trim()
+				var title = String(d[i].title).replace("Moist Meter:", "").replace("Moist Meter |", "").trim();
 
 				// Construct the Score String
 				var score_str = (isNaN(d[i].score) ? "000" : "") + String(d[i].score);
@@ -167,18 +167,18 @@
 		function filterSearch(data, filter_target) {
 			if ('category' in filter_target) {
 				var filter_val = filter_target['category'];
-				if (filter_val == "All")
-					return data;
-				else
+				if (filter_val == "All") {return data;}
+				else {
 					return data.filter( function(row) { return row.category == filter_val; })
+				}		
 			}
 		}
 
 		// A Custom Search Function
 		function mySearch(data, text, colFilter) {
-			if (typeof colFilter !== 'undefined')
+			if (typeof colFilter !== 'undefined') {
 				data = filterSearch(data, colFilter);
-				
+			}	
 			return titleSearch(data, text);
 		}
 
@@ -196,11 +196,11 @@
 	<script>
 		function dateFormatter(value) {
 			var d = new Date(value * 1000);
-			return ('0' + (d.getMonth() + 1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear().toString().substr(-2)
+			return ('0' + (d.getMonth() + 1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear().toString().substr(-2);
 		}
 
 		function titleFormatter(value) {
-			const split_chars = "%%%"
+			const split_chars = "%%%";
 			let temp = value.split(split_chars);
 
 			return "<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/watch?v=" + temp[1] + "\">" + temp[0] + "</a>";
@@ -213,19 +213,20 @@
 
 				// Separate the String
 				var start = value.indexOf("%%%");
-				var score = value.substr(0, start)
+				var score = value.substr(0, start);
 				var award = value.substr(start + 3);
 
 				// Add Award Image to the Score
-				if (award.toLowerCase().includes("worst") || (award.toLowerCase().includes("best"))) {
+				if (award.toLowerCase().includes("worst")||(award.toLowerCase().includes("best"))) {
 
 					var icon_url = (award.toLowerCase().includes("worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
 					var award_icon = "<img class=\"d-none d-lg-block ml-1\" width=\"16\" height=\"16\" src=\"" + icon_url + "\" title=\"" + award + "\">";
 
 					value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
 				}
-				else
+				else {
 					value = score;
+				}
 			}
 			return value;
 		}
