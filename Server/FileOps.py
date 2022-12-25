@@ -41,7 +41,7 @@ class FileOps():
 		p = subprocess.run(["wget", "-O", FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		
 		if not os.path.isfile(FileOps.SOURCE_DIR + rel_local_path) or p.returncode:
-			raise Exception("Unable to Pull File " + str(absolute_remote_path) + " from Server. Args='" + " ".join(p.args) + "'")
+			raise SubprocessError("Unable to Pull File " + str(absolute_remote_path) + " from Server. Args='" + " ".join(p.args) + "'")
 
 
 	# Pushes the data File to the FTP server
@@ -51,6 +51,13 @@ class FileOps():
 		p = subprocess.run(["wput", "--reupload", "-A", "--basename=" + FileOps.SOURCE_DIR, FileOps.SOURCE_DIR + rel_local_path, ftp_url], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 		
 		if (p.returncode):
-			raise Exception("Unable to Send File to Server. Args='" + " ".join(p.args) + "'")
+			raise SubprocessError("Unable to Send File to Server. Args='" + " ".join(p.args) + "'")
 		elif remove_local_file:
 			FileOps.delete_file(rel_local_path)
+
+
+
+# Exception noting when a subprocess fails
+class SubprocessError(BaseException):
+    def __init__(self, message):
+        self.msg = message

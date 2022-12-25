@@ -6,6 +6,7 @@ import time
 import os
 
 # Exceptions
+from FileOps import SubprocessError
 from urllib3.exceptions import NewConnectionError
 from requests.exceptions import ConnectionError
 from socket import gaierror
@@ -44,6 +45,10 @@ def handler(exception, logger):
 	# Handle Specific Errors
 	if type(exception) in {NewConnectionError, ConnectionError, gaierror}:
 		time.sleep(60)
+		return False
+	
+	elif type(exception) == SubprocessError:
+		logger.warning(exception.msg)
 		return False
 
 	else:

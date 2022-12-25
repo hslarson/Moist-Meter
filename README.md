@@ -23,7 +23,7 @@ Email: contact@moistmeter.org
 
 ### Notes:
 - The website only tracks "official" Moist Meters (i.e. YouTube videos uploaded by penguinz0 with 'Moist Meter' in the title)
-- It is possible to add unofficial Moist Meters manually, but I can't ensure that I'll catch all of them so I'm choosing not to include them at this time.
+- It is possible to add unofficial Moist Meters manually, but I can't ensure that I'll catch all of them so I'm choosing not to include them at this time
 - Even though the video identification system is automatic, I still have to score the videos manually so new Moist Meters may take a day or two to appear on the list
-- I'm trying to track 'Moisty' award winners, but this is a manual process and I may stop doing so later on
+- I'm trying to track 'Moisty' award winners, but this is a manual process and I may stop doing so later on. Moisties are marked with gold and brown drops next to the score (only visible on large screens)
 - Use the email above to contact me if you notice any mistakes/bugs
