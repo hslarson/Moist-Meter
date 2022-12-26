@@ -74,7 +74,7 @@
 
 	<!-- Main Table -->
 	<div class="px-1">
-		<table id="table" class="table table-striped" data-search="true" data-custom-search="mySearch" data-search-selector="#searchBox" data-toolbar="#tableToolbar">
+		<table id="table" class="table table-striped" data-search="true" data-custom-search="mySearch" data-search-selector="#searchBox" data-toolbar="#tableToolbar" data-sort-reset="true">
 			<thead>
 				<tr>
 					<th class="d-none d-sm-table-cell" data-sortable="true" data-field="num">#</th>
@@ -102,19 +102,19 @@
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
 
-		// Gets the Data File from the Server
+		/* Gets the Data File from the Server */
 		async function get_json(filename) {
 			return await $.getJSON(filename);
 		}
 
-		// Selects a Random Quote for the Top Banner
+		/* Selects a Random Quote for the Top Banner */
 		$(async function() {
 			var quotes = await get_json(".quotes.json");
 			var index = Math.floor(Math.random() * quotes.length);
 			$("#quote").html("<em>" + String(quotes[index]) + "</em>");
 		});
 
-		// Generates the Main Table
+		/* Generates the Main Table */
 		$(async function() {
 			var d = await get_json(".data.json");
 			var out = [];
@@ -122,13 +122,13 @@
 			for (i in d) {
 				if (!d[i].rated) {continue;}
 
-				// Format Title
+				/* Format Title */
 				var title = String(d[i].title).replace("Moist Meter:", "").replace("Moist Meter |", "").trim();
 
-				// Construct the Score String
+				/* Construct the Score String */
 				var score_str = (isNaN(d[i].score) ? "000" : "") + String(d[i].score);
-				while (score_str.length < 3) { score_str = "0" + score_str; } // Pad front with 0's
-				score_str += (d[i].hasOwnProperty('award') ? "%%%" + d[i]["award"] : ""); // Add Award
+				while (score_str.length < 3) { score_str = "0" + score_str; } /* Pad front with 0's */
+				score_str += (d[i].hasOwnProperty('award') ? "%%%" + d[i]["award"] : ""); /* Add Award */
 
 				out.push({
 					"num" : d.length - i,
@@ -141,9 +141,15 @@
 			
 			$('#table').bootstrapTable({ data: out });
 			$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
+
+			/* Activate Tooltips */
+			$('[data-toggle="tooltip"]').tooltip();
+			$("#table").on("post-body.bs.table", function(){
+					$('[data-toggle="tooltip"]').tooltip();
+			});
 		});
 
-		// Update Copyright Text
+		/* Update Copyright Text */
 		$(function() {
 			$("#copyright").html( "© 2021-" + new Date().getFullYear().toString());
 		});
@@ -152,7 +158,7 @@
 	
 	<!-- Custom Filters and Search Functions -->
 	<script>
-		// Search Data by Text
+		/* Search Data by Text */
 		function titleSearch(data, search_target) {
 			if (!search_target.length) { return data; }
 			else { return data.filter(
@@ -163,7 +169,7 @@
 			)}
 		}
 
-		// Filter Data
+		/* Filter Data */
 		function filterSearch(data, filter_target) {
 			if ('category' in filter_target) {
 				var filter_val = filter_target['category'];
@@ -174,7 +180,7 @@
 			}
 		}
 
-		// A Custom Search Function
+		/* A Custom Search Function */
 		function mySearch(data, text, colFilter) {
 			if (typeof colFilter !== 'undefined') {
 				data = filterSearch(data, colFilter);
@@ -182,7 +188,7 @@
 			return titleSearch(data, text);
 		}
 
-		// A Callback Function for the Category Dropdown
+		/* A Callback Function for the Category Dropdown */
 		async function filterBy(val) {
 			$('#tableFilter').html((val == "All" ? "Categories" : val));	
 			$("#table").bootstrapTable('filterBy', {"category" : val});
@@ -211,18 +217,17 @@
 
 			if (value.includes("%%%")) {
 
-				// Separate the String
+				/* Separate the String */
 				var start = value.indexOf("%%%");
 				var score = value.substr(0, start);
 				var award = value.substr(start + 3);
 
-				// Add Award Image to the Score
+				/* Add Award Image to the Score */
 				if (award.toLowerCase().includes("worst")||(award.toLowerCase().includes("best"))) {
 
 					var icon_url = (award.toLowerCase().includes("worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
-					var award_icon = "<img class=\"d-none d-lg-block ml-1\" width=\"16\" height=\"16\" src=\"" + icon_url + "\" title=\"" + award + "\">";
-
-					value = "<span class=\"row align-items-center m-0\">" + score + award_icon + "</span>";
+					var award_icon = "<img class=\"d-none d-lg-block ml-1\" width=\"16\" height=\"16\" src=\"" + icon_url + "\" />";
+					value = "<span data-toggle=\"tooltip\" data-placement=\"left\" class=\"row align-items-center m-0\" title=\"" + award + "\">" + score + award_icon + "</span>";
 				}
 				else {
 					value = score;

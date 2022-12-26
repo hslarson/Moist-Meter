@@ -101,7 +101,7 @@
 	</div>
 
 	<script> 
-		// Adds a Normal Carousel Slide
+		/* Adds a Normal Carousel Slide */
 		function create_slide(title, id, active, embed) {
 			
 			var $template = $('#slide-template');
@@ -118,7 +118,7 @@
 			return $template.html();
 		}
 
-		// Adds a Placeholder Slide
+		/* Adds a Placeholder Slide */
 		function create_placeholder_slide(active) {
 			
 			var $template = $('#placeholder-template');
@@ -128,12 +128,12 @@
 			$('#inner').append($template.html());
 		}
 
-		// Gets the data.json File
+		/* Gets the data.json File */
 		async function get_json(filename) {
 			return await $.getJSON(filename);
 		}
 
-		// Deletes the Active Slide
+		/* Deletes the Active Slide */
 		async function delActiveSlide() {
 
 			var $carousel = $('#main');
@@ -149,7 +149,7 @@
 			});
 		}
 	
-		// Adds Slides to Carousel
+		/* Adds Slides to Carousel */
 		$(document).ready(async function () {
 
 			var $carousel = $('#inner');
@@ -174,7 +174,7 @@
 			}
 			if (first) { create_placeholder_slide(true); }
 			
-			// Add Handler for Form Submissions
+			/* Add Handler for Form Submissions */
 			else {    
 				$("form").submit(async function (form) {
 					form.preventDefault();
