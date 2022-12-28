@@ -318,7 +318,7 @@ class DataTools():
 			"message" : msg
 		}
 		if type(id) == str:
-			payload["url"] = ("https://www.youtube.com/watch?v=" + id if "New Moist Meter:" not in msg else "http://www.moistmeter.42web.io/form/")
+			payload["url"] = ("https://www.youtube.com/watch?v=" + id if "New Moist Meter:" not in msg else "https://www.moistmeter.org/form/")
 			payload["url_title"] = ("Watch Video" if "New Moist Meter:" not in msg else "Go To Form")
 
 		YouTube.rqst.post("https://api.pushover.net/1/messages.json", params=payload)
