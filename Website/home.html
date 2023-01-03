@@ -79,6 +79,7 @@
 		</div>
 	</div>
 
+
 	<!-- Main Table -->
 	<div class="px-1 w-100">
 		<table id="table" class="table table-striped w-100" data-search="true" data-custom-search="mySearch" data-search-selector="#searchBox" data-toolbar="#tableToolbar" data-sort-reset="true">
@@ -104,49 +105,31 @@
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
 
-		/* Gets the Data File from the Server */
-		async function get_json(filename) {
-			return await $.getJSON(filename);
-		}
-
-		/* Selects a Random Quote for the Top Banner */
-		$(async function() {
-			var quotes = await get_json(".quotes.json");
-			var index = Math.floor(Math.random() * quotes.length);
-			$("#quote").html("<em>" + String(quotes[index]) + "</em>");
-		});
-
 		/* Generates the Main Table */
 		$(async function() {
-			var d = await get_json(".data.json");
-			var out = [];
 
-			for (i in d) {
-				if (!d[i].rated) {continue;}
+			/* Pull Data from Server */
+			$.ajax({
+				url: "./data.php",
+				type: 'get',
 
-				/* Format Title */
-				var title = String(d[i].title).replace("Moist Meter:", "").replace("Moist Meter |", "").trim();
-
-				/* Construct the Score String */
-				var score_str = (isNaN(d[i].score) ? "000" : "") + String(d[i].score);
-				while (score_str.length < 3) { score_str = "0" + score_str; } /* Pad front with 0's */
-				score_str += (d[i].hasOwnProperty('award') ? "%%%" + d[i]["award"] : ""); /* Add Award */
-
-				out.push({
-					"num" : d.length - i,
-					"date" : d[i].date,
-					"category" : d[i].category,
-					"title_id" : title + "%%%" + d[i].id,
-					"score" : score_str
-				});
-			}
-			
-			$('#table').bootstrapTable({ data: out });
+				success: async function (d, t, xhr) {
+					/* console.log("Success: "); console.log(xhr.responseJSON); */
+					
+					var resp = xhr.responseJSON;
+					$("#quote").html("<em>" + String(resp.quote) + "</em>");
+					$('#table').bootstrapTable({ data: resp.data });
+					$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
+				},
+				error: async function (req, err) {
+					;/* console.log("Error: " + err); */
+				}
+			});
 
 			/* Activate Tooltips */
 			$('[data-toggle="tooltip"]').tooltip();
-			$("#table").on("post-body.bs.table", function(){
-					$('[data-toggle="tooltip"]').tooltip();
+			$("#table").on("post-body.bs.table", function(){ 
+				$('[data-toggle="tooltip"]').tooltip();
 			});
 		});
 
