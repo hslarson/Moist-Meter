@@ -48,8 +48,9 @@
 
 	<!-- Preloads -->
     <link rel="preload" href="./assets/jumbotron-icon-1.png" as="image" />
-    <link rel="preload" href="./.data.json" as="fetch" crossorigin="anonymous" />
-    <link rel="preload" href="./.quotes.json" as="fetch" crossorigin="anonymous" />
+	<link rel="preload" href="./assets/moisty-best.png" as="image" />
+	<link rel="preload" href="./assets/moisty-worst.png" as="image" />
+    <link rel="preload" href="./data.php" as="fetch" crossorigin="anonymous" />
 </head>
 
 
@@ -104,11 +105,8 @@
 
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
-
-		/* Generates the Main Table */
+		/* Generate the Main Table */
 		$(async function() {
-
-			/* Pull Data from Server */
 			$.ajax({
 				url: "./data.php",
 				type: 'get',
@@ -119,14 +117,15 @@
 					var resp = xhr.responseJSON;
 					$("#quote").html("<em>" + String(resp.quote) + "</em>");
 					$('#table').bootstrapTable({ data: resp.data });
-					$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
 				},
 				error: async function (req, err) {
-					;/* console.log("Error: " + err); */
+					/* console.log("Error: " + err) */;
 				}
 			});
+		});
 
-			/* Activate Tooltips */
+		/* Activate Tooltips */
+		$(async function() {
 			$('[data-toggle="tooltip"]').tooltip();
 			$("#table").on("post-body.bs.table", function(){ 
 				$('[data-toggle="tooltip"]').tooltip();
@@ -134,7 +133,7 @@
 		});
 
 		/* Update Copyright Text */
-		$(function() {
+		$(async function() {
 			$("#copyright").html( "© 2021-" + new Date().getFullYear().toString());
 		});
 	</script>
