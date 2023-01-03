@@ -35,32 +35,39 @@
 	<meta property="og:image:height" content="630" />
 	<meta property="og:image:alt" content="Water Drop Icon" />
 
-	<!-- Scripts -->
+	<!-- Load Stylesheets -->
 	<link rel="stylesheet" href="https://ajax.aspnetcdn.com/ajax/bootstrap/4.6.0/css/bootstrap.min.css">
 	<link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.css">
+	<style>.bs-bars.float-left {float: none!important; margin: 0!important;}</style>
 
 	<!-- Loads 3rd Party Scripts -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.6.0.min.js"></script>
 	<script src="https://ajax.aspnetcdn.com/ajax/bootstrap/4.6.0/bootstrap.min.js"></script>
 	<script src="https://unpkg.com/bootstrap-table@1.21.1/dist/bootstrap-table.min.js"></script>
+
+	<!-- Preloads -->
+    <link rel="preload" href="./assets/jumbotron-icon-1.png" as="image" />
+    <link rel="preload" href="./.data.json" as="fetch" crossorigin="anonymous" />
+    <link rel="preload" href="./.quotes.json" as="fetch" crossorigin="anonymous" />
 </head>
 
 
-<body>
+<body style="min-height:calc(100vh + 1px); width:100%">
+	
 	<!-- Jumbotron (Top Banner) -->
-	<div class="jumbotron text-center p-4 m-0" style="background-image: url('./assets/jumbotron-icon-1.png');">
+	<div class="jumbotron text-center p-4 m-0 w-100" style="background-image: url('./assets/jumbotron-icon-1.png');">
 		<h1 class="display-4 text-white">Every Moist Meter</h1>
-		<p id="quote" class="mb-0" style="color:rgb(219, 219, 219)"></p>
+		<p id="quote" class="mb-0" style="color:rgb(219, 219, 219)">. . .</p>
 	</div>
 
 	<!-- Toolbar -->
-	<div id="tableToolbar" class="d-flex flex-wrap justify-content-between align-items-center">
+	<div id="tableToolbar" class="d-flex flex-wrap justify-content-between align-items-center py-2 w-100">
 		<div class="flex-column">
-			<input class="my-2 form-control" type="text" id="searchBox" placeholder="Search"/>
+			<input class="form-control" type="text" id="searchBox" placeholder="Search"/>
 		</div>
 		<div class="flex-column"></div>
-			<button class="my-2 btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" id="tableFilter">Categories</button>
+			<button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" id="tableFilter">Categories</button>
 			<div class="dropdown-menu">
 				<a class="dropdown-item" href="#" onclick="filterBy('All')">All</a>
 				<div role="separator" class="dropdown-divider"></div>
@@ -73,8 +80,8 @@
 	</div>
 
 	<!-- Main Table -->
-	<div class="px-1">
-		<table id="table" class="table table-striped" data-search="true" data-custom-search="mySearch" data-search-selector="#searchBox" data-toolbar="#tableToolbar" data-sort-reset="true">
+	<div class="px-1 w-100">
+		<table id="table" class="table table-striped w-100" data-search="true" data-custom-search="mySearch" data-search-selector="#searchBox" data-toolbar="#tableToolbar" data-sort-reset="true">
 			<thead>
 				<tr>
 					<th class="d-none d-sm-table-cell" data-sortable="true" data-field="num">#</th>
@@ -84,18 +91,13 @@
 					<th data-sortable="true" data-field="score" data-formatter="scoreFormatter">Rating</th>
 				</tr>
 			</thead>
-
 		</table>
 	</div>
 	
 	<!-- Bottom Banner -->
-	<div class="d-flex bg-light flex-wrap justify-content-between">
-		<div class="flex-column text-center p-2">
-			<p class="px-2 py-1 m-0 text-small">
-				<a target="_blank" rel="noopener noreferrer" href="https://github.com/hslarson/Moist-Meter">GitHub Repo</a>
-			</p>
-		</div>
-		<div class="flex-column text-center p-2"><p id="copyright" class="px-2 py-1 m-0 text-secondary text-small"></p></div>
+	<div class="bg-light text-right text-small p-2 w-100">
+		<p id="copyright" class="m-0 float-left text-secondary">©</p>
+		<a target="_blank" rel="noopener noreferrer" href="https://github.com/hslarson/Moist-Meter">GitHub Repo</a>
 	</div>
 
 
@@ -140,7 +142,6 @@
 			}
 			
 			$('#table').bootstrapTable({ data: out });
-			$(".bs-bars.float-left").first().removeClass('float-left').addClass('m-0');
 
 			/* Activate Tooltips */
 			$('[data-toggle="tooltip"]').tooltip();
@@ -193,8 +194,6 @@
 			$('#tableFilter').html((val == "All" ? "Categories" : val));	
 			$("#table").bootstrapTable('filterBy', {"category" : val});
 		}
-
-
 	</script>
 
 
@@ -209,11 +208,11 @@
 			const split_chars = "%%%";
 			let temp = value.split(split_chars);
 
-			return "<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.youtube.com/watch?v=" + temp[1] + "\">" + temp[0] + "</a>";
+			return "<a target='_blank' rel='noopener noreferrer' href='https://www.youtube.com/watch?v=" + temp[1] + "''>" + temp[0] + "</a>";
 		}
 
 		function scoreFormatter(value) {
-			while (value[0] == '0') { value = value.slice(1) }
+			while (value[0] == '0') { value = value.slice(1); }
 
 			if (value.includes("%%%")) {
 
@@ -226,8 +225,8 @@
 				if (award.toLowerCase().includes("worst")||(award.toLowerCase().includes("best"))) {
 
 					var icon_url = (award.toLowerCase().includes("worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
-					var award_icon = "<img class=\"d-none d-lg-block ml-1\" width=\"16\" height=\"16\" src=\"" + icon_url + "\" />";
-					value = "<span data-toggle=\"tooltip\" data-placement=\"left\" class=\"row align-items-center m-0\" title=\"" + award + "\">" + score + award_icon + "</span>";
+					var award_icon = "<img class='d-none d-lg-block ml-1' alt='' width='16' height='16' src='" + icon_url + "' />";
+					value = "<span data-toggle='tooltip' data-placement='left' class='row align-items-center m-0' title='" + award + "'>" + score + award_icon + "</span>";
 				}
 				else {
 					value = score;
