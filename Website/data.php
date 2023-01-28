@@ -13,8 +13,8 @@
 			$title = trim( str_replace("Moist Meter:", "", str_replace("Moist Meter |", "", strval($elem["title"]))) );
 
 			/* Construct the Score String */
-			$score_str = (is_numeric($elem["score"]) ? "000" : "") . $elem["score"]; /* Pad front with 0's */
-			while (strlen($score_str) < 3) { $score_str = "0" . $score_str; } /* Add Award */
+			$score_str = (is_numeric($elem["score"]) ? "" : "000") . $elem["score"]; /* Pad Non-Numeric Scores with 0's */
+			while (strlen($score_str) < 3) { $score_str = "0" . $score_str; }
 			$score_str .= (isset($elem["award"]) ? "%%%" . $elem["award"] : ""); /* Add Award */
 
 			/* Push to Array */
