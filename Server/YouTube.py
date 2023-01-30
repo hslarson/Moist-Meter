@@ -92,7 +92,7 @@ class YouTube():
 
 			response = YouTube.rqst.get(url)
 			if response.status_code != 200:
-				raise Exception("Bad Response Status Code: " + str(response.status_code))
+				raise StatusCodeError(response.status_code)
 
 			response = response.json()
 
@@ -133,3 +133,9 @@ class YouTube():
 		hour, minute, second = time.split(":")
 
 		return int(datetime(int(year), int(month), int(day), int(hour), int(minute), int(second), tzinfo=timezone.utc).timestamp())
+
+
+# Exception noting when a request fails
+class StatusCodeError(BaseException):
+    def __init__(self, code):
+        self.msg = "Bad Status Code: " + str(code)

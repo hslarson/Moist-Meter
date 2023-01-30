@@ -7,7 +7,9 @@ import os
 
 # Exceptions
 from FileOps import SubprocessError
+from YouTube import StatusCodeError
 from urllib3.exceptions import NewConnectionError
+from urllib3.contrib.pyopenssl import SocketError
 from requests.exceptions import ConnectionError
 from socket import gaierror
 
@@ -43,7 +45,7 @@ def handler(exception, logger):
 		logger.exception("Exception: ")
 
 	# Handle Specific Errors
-	if type(exception) in {NewConnectionError, ConnectionError, gaierror}:
+	if type(exception) in {NewConnectionError, ConnectionError, gaierror, StatusCodeError, SocketError}:
 		time.sleep(60)
 		return False
 	
