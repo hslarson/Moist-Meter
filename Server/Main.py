@@ -42,11 +42,13 @@ def handler(exception, logger):
 
 	# Display Exception Traceback in Log File
 	else:
-		logger.exception("Exception: ")
+		logger.exception("Exception: TYPE="+str(type(exception)))
 
 	# Handle Specific Errors
 	if type(exception) in {NewConnectionError, ConnectionError, gaierror, StatusCodeError, SocketError}:
-		time.sleep(60)
+		cooldown = 60
+		logger.info("Exception Was Non-Fatal, Program Will Continue in " + str(cooldown) + " Seconds")
+		time.sleep(cooldown)
 		return False
 	
 	elif type(exception) == SubprocessError:
