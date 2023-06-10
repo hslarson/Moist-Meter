@@ -63,6 +63,7 @@ class DataTools():
 			last_id = None
 		
 		uploads = YouTube.pull_uploads(start)
+		logger.debug(uploads)
 		if len(uploads):
 			DataTools.poll_settings["last_vid"] = uploads[0].date + 1
 

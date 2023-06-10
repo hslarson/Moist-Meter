@@ -28,7 +28,7 @@ logger.addHandler(handler)
 temp_file = open(logs_file, 'a')
 temp_file.write("\n" + '-'*64 + "\n\n")
 temp_file.close()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 logger.info("Session Started. Welcome!")
 
 
