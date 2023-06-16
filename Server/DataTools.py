@@ -2,6 +2,7 @@ from datetime import datetime
 from turtle import up
 from YouTube import YouTube
 from FileOps import FileOps
+import requests
 import json
 import time
 import os
@@ -35,19 +36,19 @@ class DataTools():
 			DataTools.poll_settings = config_obj["poll_settings"]
 			DataTools.poll_settings["last_vid"] = DataTools.poll_settings["last_poll"]
 			DataTools.audit_settings = config_obj["audit_settings"]
-		
+
 			config_file.close()
 		else:
 			raise Exception("Failed to Load config.json")
 
-		
+
 
 
 	# **** PUBLIC FUNCTIONS ****
 
 
 	# Gets YouTube Data and Checks for New Moist Meters
-	# If Found, Add Entry to Data File 
+	# If Found, Add Entry to Data File
 	def poll(logger, custom_start_time=-1):
 
 		# Maintain the Desired Poll Frequency
@@ -61,7 +62,7 @@ class DataTools():
 		if custom_start_time >= 0:
 			start = custom_start_time
 			last_id = None
-		
+
 		uploads = YouTube.pull_uploads(start)
 		logger.debug(uploads)
 		if len(uploads):
@@ -86,16 +87,16 @@ class DataTools():
 					if mm_obj == YouTube.Video.from_dict(obj):
 						known = True
 						break
-					
+
 				if not known:
 					# Send "New Moist Meter" Notification
 					notifications.append((mm_obj.short_title(), mm_obj.id))
-					
+
 					# Insert a New Object into the List
 					for index in range(len(contents)+1):
 						if index < len(contents) and mm_obj.date < contents[index]["date"]:
 							continue
-						
+
 						video_obj = {
 							"title" : mm_obj.title,
 							"id" : mm_obj.id,
@@ -106,7 +107,7 @@ class DataTools():
 						}
 						contents.insert(index, video_obj)
 						break
-				
+
 			if len(notifications):
 
 				# Send Pushover Notifications
@@ -121,7 +122,7 @@ class DataTools():
 					file.close()
 				else:
 					raise Exception("Could Not Write to .data.json")
-				
+
 				notifications.clear()
 				logger.info("Sending Updated Data to Server")
 				FileOps.put_file(remove_local_file=False)
@@ -163,13 +164,13 @@ class DataTools():
 		if (DataTools.__sort(contents)):
 			logger.warning("List Was Out of Order")
 			altered = True
-		
+
 		# Pull Uploads
 		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(FIRST_MOIST_METER))
-		
+
 		# Iterate Over Uploads
 		for index, data_obj in enumerate(contents):
-			
+
 			# Check For Duplicates in .data.json
 			for i, o in enumerate(contents[index+1:]):
 				if data_obj["id"] == o["id"]:
@@ -201,12 +202,12 @@ class DataTools():
 						notifications.append(("Title Changed for " + str(data_obj["title"]) + ". New Title: " + str(mm_obj.title), mm_obj.id))
 						contents[index]["title"] = mm_obj.title
 						altered = True
-					
+
 					break
 			else:
 				logger.warning(f"Found No Matching Video for {data_obj['title']}")
 				notifications.append((f"Found No Matching Video for {data_obj['title']}", data_obj["id"]))
-		
+
 		if altered:
 
 			# Upload the File if Any Changes Were Made
@@ -225,7 +226,7 @@ class DataTools():
 			DataTools.__send_notification(msg, id)
 		else:
 			notifications.clear()
-		
+
 		# Back Up the Data File
 		logger.debug("Backing Up Data File")
 		DataTools.__back_up()
@@ -248,8 +249,8 @@ class DataTools():
 			raise Exception("config.json Could Not be Read")
 
 		# Alter the last poll/audit variables
-		contents["poll_settings"]["last_poll"] = DataTools.poll_settings["last_poll"] 
-		contents["audit_settings"]["last_audit"] = DataTools.audit_settings["last_audit"] 
+		contents["poll_settings"]["last_poll"] = DataTools.poll_settings["last_poll"]
+		contents["audit_settings"]["last_audit"] = DataTools.audit_settings["last_audit"]
 
 		# Replace the Contents of the Config File
 		file = open(FileOps.SOURCE_DIR + 'config.json', 'w')
@@ -262,7 +263,7 @@ class DataTools():
 
 	# Creates a Local Copy of the .data.json
 	def __back_up():
-		
+
 		# Pull Data, Move it To Backups Folder, and Rename it
 		FileOps.pull_file(rel_local_path="Data_Backups/backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
 
@@ -276,12 +277,12 @@ class DataTools():
 	# Perform a simple selection sort
 	# Post Condition: Objects ordered from newest to oldest
 	def __sort(contents):
-		
+
 		lindex = 0
 		altered = False
 		end = len(contents)
 		while (lindex < end):
-			
+
 			# Search for highest date
 			highest_date  = contents[lindex]["date"]
 			highest_index = lindex
@@ -291,9 +292,9 @@ class DataTools():
 					highest_date = contents[rindex]["date"]
 					highest_index = rindex
 					altered = True
-			
+
 				rindex += 1
-			
+
 			# Swap elements if necessary
 			temp = contents[highest_index]
 			contents[highest_index] = contents[lindex]
@@ -301,18 +302,18 @@ class DataTools():
 			lindex += 1
 
 		return altered
-	
+
 
 	# Separate Moist Meters from Normal Uploads
 	def __filter_moist_meters(upload_list):
 		return [vid for vid in upload_list if vid.is_moist_meter()]
 
 
-	# Sends a Pushover Notification 
+	# Sends a Pushover Notification
 	def __send_notification(msg , id=None):
 		if not DataTools.pushover_settings["allow_pushover_notifications"]:
 			return
-		
+
 		payload = {
 			"token" : DataTools.pushover_secrets["app_token"],
 			"user" : DataTools.pushover_secrets["user_key"],
@@ -322,8 +323,11 @@ class DataTools():
 			payload["url"] = ("https://www.youtube.com/watch?v=" + id if "New Moist Meter:" not in msg else "https://www.moistmeter.org/form/")
 			payload["url_title"] = ("Watch Video" if "New Moist Meter:" not in msg else "Go To Form")
 
-		YouTube.rqst.post("https://api.pushover.net/1/messages.json", params=payload)
-	
+		# Trying to fix notification error, got OSError("(104, 'ECONNRESET')
+		# I don't think this is as efficient, could try using a queue and retrying send until it goes through
+		requests.post("https://api.pushover.net/1/messages.json", params=payload)
+		# YouTube.rqst.post("https://api.pushover.net/1/messages.json", params=payload)
+
 
 	# Returns the contents of .data.json as a list
 	def __load_data():

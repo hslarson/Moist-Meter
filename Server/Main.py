@@ -50,7 +50,7 @@ def handler(exception, logger):
 		logger.info("Exception Was Non-Fatal, Program Will Continue in " + str(cooldown) + " Seconds")
 		time.sleep(cooldown)
 		return False
-	
+
 	elif type(exception) == SubprocessError:
 		logger.warning(exception.msg)
 		return False
@@ -70,7 +70,7 @@ while running:
 
 		logger.debug("Sleeping Until " + ("Next Poll" if next_poll < next_audit else "Next Audit") + " in " + str(round(max(min(next_poll, next_audit),0))) + " Seconds")
 		time.sleep(max(min(next_poll, next_audit),0))
-	
+
 	except BaseException as err:
 		running = not handler(err, logger)
 

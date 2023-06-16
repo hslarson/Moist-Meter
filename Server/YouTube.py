@@ -27,7 +27,7 @@ class YouTube():
 					return True
 
 			return False
-		
+
 		def short_title(self):
 			return str(self.title).replace("Moist Meter:", "").replace("Moist Meter |", "").strip()
 
@@ -108,7 +108,7 @@ class YouTube():
 			for item in response["items"]:
 
 				tm = YouTube.__str2timestamp(item["snippet"]["publishedAt"])
-				
+
 				if before and tm > before:
 					continue
 				elif after and tm < after:
@@ -124,7 +124,7 @@ class YouTube():
 
 	# Converts YouTube's Time String into a UTC Timestamp
 	def __str2timestamp(date_string):
-		
+
 		# Example date_string: "2021-07-15T14:12:16Z"
 		date = date_string[:date_string.find("T")]
 		time = date_string[date_string.find("T")+1:-1]
