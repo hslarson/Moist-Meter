@@ -47,7 +47,7 @@ class Worker():
 			last_id = None
 
 		uploads = YouTube.pull_uploads(start)
-		logger.debug([vid.__dict__] for vid in uploads)	
+		logger.debug([vars(vid)] for vid in uploads)	
 		if len(uploads):
 			Worker.poll_settings["last_vid"] = uploads[0].date + 1
 
