@@ -5,7 +5,6 @@ import time
 import os
 
 
-
 class YouTube():
 
 	class Video():
@@ -50,6 +49,11 @@ class YouTube():
 			raise Exception("Failed to Read secrets.json")
 
 
+	# Separate Moist Meters from Normal Uploads
+	def filter_moist_meters(upload_list):
+		return [vid for vid in upload_list if vid.is_moist_meter()]
+
+
 	# Returns a List of Every Video Uploaded by Penguinz0
 	def pull_uploads(after):
 
@@ -60,11 +64,12 @@ class YouTube():
 		elif window < 3600 * 24 * 7:
 			max_extries = 20
 
-		return YouTube.get_videos_by_playlist(after=after, block_size=max_extries)
+		# Pull penguinz0 videos
+		return YouTube.__get_videos_by_playlist("penguinz0", "uploads", after=after, block_size=max_extries)
 
 
 	# Returns All of the Videos in a Given Playlist as Video Objects
-	def get_videos_by_playlist(username="penguinz0", playlist_name="uploads", before=None, after=None, block_size=20):
+	def __get_videos_by_playlist(username, playlist_name, before=None, after=None, block_size=20):
 
 		if (before and (after > before)):
 			raise Exception("In get_videos_by_playlist(): 'after' should not be greater then 'before'")

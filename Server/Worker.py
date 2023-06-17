@@ -1,50 +1,33 @@
-from datetime import datetime
-from turtle import up
 from YouTube import YouTube
 from FileOps import FileOps
-import requests
+from Pushover import Pushover
 import json
 import time
-import os
 
 
-class DataTools():
+class Worker():
 
 	# Constructor
 	def __init__(self):
-		DataTools.yt_obj = YouTube()
-		DataTools.file_ops = FileOps()
+		Worker.yt_obj = YouTube()
+		Worker.file_ops = FileOps()
+		Worker.pushover_obj = Pushover()
 
 		# Clear Lingering Data Files
 		FileOps.delete_file(".data.json")
-
-		# Load the secrets file
-		secrets_file = open(FileOps.SOURCE_DIR + 'secrets.json')
-		if secrets_file.readable:
-			secrets_obj = json.load(secrets_file)
-			DataTools.pushover_secrets = secrets_obj["pushover"]
-			secrets_file.close()
-		else:
-			raise Exception("Failed to Read secrets.json")
 
 		# Load the config file
 		config_file = open(FileOps.SOURCE_DIR + 'config.json')
 		if config_file.readable:
 			config_obj = json.load(config_file)
 
-			DataTools.pushover_settings = config_obj["pushover_settings"]
-			DataTools.poll_settings = config_obj["poll_settings"]
-			DataTools.poll_settings["last_vid"] = DataTools.poll_settings["last_poll"]
-			DataTools.audit_settings = config_obj["audit_settings"]
+			Worker.poll_settings = config_obj["poll_settings"]
+			Worker.poll_settings["last_vid"] = Worker.poll_settings["last_poll"]
+			Worker.audit_settings = config_obj["audit_settings"]
 
 			config_file.close()
 		else:
 			raise Exception("Failed to Load config.json")
-
-
-
-
-	# **** PUBLIC FUNCTIONS ****
 
 
 	# Gets YouTube Data and Checks for New Moist Meters
@@ -52,30 +35,30 @@ class DataTools():
 	def poll(logger, custom_start_time=-1):
 
 		# Maintain the Desired Poll Frequency
-		if custom_start_time < 0 and time.time() < DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"]:
-			return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
+		if custom_start_time < 0 and time.time() < Worker.poll_settings["last_poll"] + Worker.poll_settings["poll_frequency_seconds"]:
+			return Worker.poll_settings["last_poll"] + Worker.poll_settings["poll_frequency_seconds"] - time.time()
 
 		logger.debug("Polling")
 
 		# Pull YouTube Data
-		start = DataTools.poll_settings["last_vid"]
+		start = Worker.poll_settings["last_vid"]
 		if custom_start_time >= 0:
 			start = custom_start_time
 			last_id = None
 
 		uploads = YouTube.pull_uploads(start)
-		logger.debug(uploads)
+		logger.debug(uploads.__dict__)	
 		if len(uploads):
-			DataTools.poll_settings["last_vid"] = uploads[0].date + 1
+			Worker.poll_settings["last_vid"] = uploads[0].date + 1
 
-		moist_meters = DataTools.__filter_moist_meters(uploads)
+		moist_meters = YouTube.filter_moist_meters(uploads)
 
 		# If a New Moist Meter is Found, Append It To the List
 		if (len(moist_meters)):
 
 			# Load the Data File and make sure it's sorted
-			contents = DataTools.__load_data()
-			DataTools.__sort(contents)
+			contents = FileOps.load_data()
+			Worker.__sort(contents)
 
 			# Iterate Over the New Moist Meters
 			notifications = []
@@ -113,7 +96,7 @@ class DataTools():
 				# Send Pushover Notifications
 				for title, id in notifications:
 					logger.info("Found New Moist Meter: " + str(title))
-					DataTools.__send_notification(f"New Moist Meter: {title}", id)
+					Pushover.send_notification(f"New Moist Meter: {title}", id)
 
 				# Upload the File if Any Changes Were Made
 				file = open(FileOps.SOURCE_DIR + ".data.json", 'w')
@@ -125,16 +108,16 @@ class DataTools():
 
 				notifications.clear()
 				logger.info("Sending Updated Data to Server")
-				FileOps.put_file(remove_local_file=False)
+				FileOps.save_data(remove_local=False)
 
 			FileOps.delete_file(".data.json")
 
 
 		# Update last_poll last (this way if errors are encountered the poll will retry from the previous last_poll)
 		if custom_start_time >= 0: return # Used by audit()
-		DataTools.poll_settings["last_poll"] = time.time()
-		DataTools.__save_config()
-		return DataTools.poll_settings["last_poll"] + DataTools.poll_settings["poll_frequency_seconds"] - time.time()
+		Worker.poll_settings["last_poll"] = time.time()
+		Worker.__save_config()
+		return Worker.poll_settings["last_poll"] + Worker.poll_settings["poll_frequency_seconds"] - time.time()
 
 
 	# Pulls the data file and makes sure everything is correct
@@ -142,11 +125,11 @@ class DataTools():
 	def audit(logger):
 
 		# Maintain the Desired Audit Frequency
-		if time.time() < DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"]:
-			return DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"] - time.time()
+		if time.time() < Worker.audit_settings["last_audit"] + Worker.audit_settings["audit_frequency_seconds"]:
+			return Worker.audit_settings["last_audit"] + Worker.audit_settings["audit_frequency_seconds"] - time.time()
 		else:
-			DataTools.audit_settings["last_audit"] = time.time()
-			DataTools.__save_config()
+			Worker.audit_settings["last_audit"] = time.time()
+			Worker.__save_config()
 
 		logger.debug("Auditing")
 
@@ -155,18 +138,18 @@ class DataTools():
 		notifications = []
 
 		# Do a "Long Poll" to Check for Uncatalogued Moist Meters
-		DataTools.poll(logger, FIRST_MOIST_METER)
+		Worker.poll(logger, FIRST_MOIST_METER)
 
 		# Load the Data File
-		contents = DataTools.__load_data()
+		contents = FileOps.load_data()
 
 		# Sort the List (Newest -> Oldest)
-		if (DataTools.__sort(contents)):
+		if (Worker.__sort(contents)):
 			logger.warning("List Was Out of Order")
 			altered = True
 
 		# Pull Uploads
-		moist_meters = DataTools.__filter_moist_meters(YouTube.pull_uploads(FIRST_MOIST_METER))
+		moist_meters = Worker.__filter_moist_meters(YouTube.pull_uploads(FIRST_MOIST_METER))
 
 		# Iterate Over Uploads
 		for index, data_obj in enumerate(contents):
@@ -219,25 +202,22 @@ class DataTools():
 				raise Exception("Could Not Write to .data.json")
 
 			logger.info("Sending Updated Data to Server")
-			FileOps.put_file()
+			FileOps.save_data()
 
 		# Send Notifications
 		for msg, id in notifications:
-			DataTools.__send_notification(msg, id)
+			Pushover.send_notification(msg, id)
 		else:
 			notifications.clear()
 
 		# Back Up the Data File
 		logger.debug("Backing Up Data File")
-		DataTools.__back_up()
+		FileOps.back_up_data()
 
-		return DataTools.audit_settings["last_audit"] + DataTools.audit_settings["audit_frequency_seconds"] - time.time()
-
-
-	# **** PRIVATE FUNCTIONS ****
+		return Worker.audit_settings["last_audit"] + Worker.audit_settings["audit_frequency_seconds"] - time.time()
 
 
-	# Saves the Local Config File
+	# Updates last_poll and last_audit Fields in config.json
 	def __save_config():
 
 		# Read the Config File
@@ -249,8 +229,8 @@ class DataTools():
 			raise Exception("config.json Could Not be Read")
 
 		# Alter the last poll/audit variables
-		contents["poll_settings"]["last_poll"] = DataTools.poll_settings["last_poll"]
-		contents["audit_settings"]["last_audit"] = DataTools.audit_settings["last_audit"]
+		contents["poll_settings"]["last_poll"] = Worker.poll_settings["last_poll"]
+		contents["audit_settings"]["last_audit"] = Worker.audit_settings["last_audit"]
 
 		# Replace the Contents of the Config File
 		file = open(FileOps.SOURCE_DIR + 'config.json', 'w')
@@ -259,19 +239,6 @@ class DataTools():
 			file.close()
 		else:
 			raise Exception("config.json Could Not be Written To")
-
-
-	# Creates a Local Copy of the .data.json
-	def __back_up():
-
-		# Pull Data, Move it To Backups Folder, and Rename it
-		FileOps.pull_file(rel_local_path="Data_Backups/backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
-
-		# Count Backups in Dir and Delete Some Until There is Only 10
-		backups_folder_name = "Data_Backups/"
-		files = [ name for name in os.listdir(FileOps.SOURCE_DIR + backups_folder_name) if ".json" in name and "backup_" in name ]
-		while (len(files) > 10):
-			FileOps.delete_file(backups_folder_name + files.pop(0))
 
 
 	# Perform a simple selection sort
@@ -302,46 +269,3 @@ class DataTools():
 			lindex += 1
 
 		return altered
-
-
-	# Separate Moist Meters from Normal Uploads
-	def __filter_moist_meters(upload_list):
-		return [vid for vid in upload_list if vid.is_moist_meter()]
-
-
-	# Sends a Pushover Notification
-	def __send_notification(msg , id=None):
-		if not DataTools.pushover_settings["allow_pushover_notifications"]:
-			return
-
-		payload = {
-			"token" : DataTools.pushover_secrets["app_token"],
-			"user" : DataTools.pushover_secrets["user_key"],
-			"message" : msg
-		}
-		if type(id) == str:
-			payload["url"] = ("https://www.youtube.com/watch?v=" + id if "New Moist Meter:" not in msg else "https://www.moistmeter.org/form/")
-			payload["url_title"] = ("Watch Video" if "New Moist Meter:" not in msg else "Go To Form")
-
-		# Trying to fix notification error, got OSError("(104, 'ECONNRESET')
-		# I don't think this is as efficient, could try using a queue and retrying send until it goes through
-		requests.post("https://api.pushover.net/1/messages.json", params=payload)
-		# YouTube.rqst.post("https://api.pushover.net/1/messages.json", params=payload)
-
-
-	# Returns the contents of .data.json as a list
-	def __load_data():
-
-		# Delete Old Files and Pull the New One
-		FileOps.delete_file(".data.json")
-		FileOps.pull_file()
-
-		# Load the file contents into a list
-		file = open(FileOps.SOURCE_DIR + ".data.json", 'r')
-		if file.readable:
-			contents = json.load(file)
-			file.close()
-		else:
-			raise Exception("Could Not Read .data.json")
-
-		return list(contents)

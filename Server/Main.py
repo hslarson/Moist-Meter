@@ -1,5 +1,5 @@
 # Modules
-from DataTools import DataTools
+from Worker import Worker
 from pathlib import Path
 import logging
 import time
@@ -60,19 +60,18 @@ def handler(exception, logger):
 
 
 # Main Loop
-data = DataTools()
+data = Worker()
 running = True
 while running:
 
 	try:
-		next_poll  = DataTools.poll(logger)
-		next_audit = DataTools.audit(logger)
+		next_poll  = Worker.poll(logger)
+		next_audit = Worker.audit(logger)
 
 		logger.debug("Sleeping Until " + ("Next Poll" if next_poll < next_audit else "Next Audit") + " in " + str(round(max(min(next_poll, next_audit),0))) + " Seconds")
 		time.sleep(max(min(next_poll, next_audit),0))
 
 	except BaseException as err:
 		running = not handler(err, logger)
-
 
 logger.info("Session Ended")
