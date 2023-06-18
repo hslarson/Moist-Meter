@@ -44,10 +44,9 @@ class Worker():
 		start = Worker.poll_settings["last_vid"]
 		if custom_start_time >= 0:
 			start = custom_start_time
-			last_id = None
 
 		uploads = YouTube.pull_uploads(start)
-		logger.debug([vars(vid)] for vid in uploads)	
+		logger.debug([dict(vid.__dict__) for vid in uploads])	
 		if len(uploads):
 			Worker.poll_settings["last_vid"] = uploads[0].date + 1
 
@@ -149,7 +148,7 @@ class Worker():
 			altered = True
 
 		# Pull Uploads
-		moist_meters = Worker.__filter_moist_meters(YouTube.pull_uploads(FIRST_MOIST_METER))
+		moist_meters = YouTube.filter_moist_meters(YouTube.pull_uploads(FIRST_MOIST_METER))
 
 		# Iterate Over Uploads
 		for index, data_obj in enumerate(contents):
