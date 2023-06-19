@@ -52,7 +52,7 @@ class FileOps():
 	def back_up_data():
 
 		# Pull Data, Move it To Backups Folder, and Rename it
-		FileOps.__ftp_pull_file(rel_local_path="Data_Backups/backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
+		FileOps.__ftp_pull_file("/htdocs/.data.json", "Data_Backups/backup_" + datetime.utcnow().strftime('%m-%d-%y_%H-%M-%S') + ".json")
 
 		# Count Backups in Dir and Delete Some Until There is Only 10
 		backups_folder_name = "Data_Backups/"
