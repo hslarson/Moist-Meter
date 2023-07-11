@@ -65,10 +65,10 @@ class YouTube():
 			max_extries = 20
 
 		# Pull penguinz0 videos
-		vids = YouTube.__get_videos_by_playlist("penguinz0", "uploads", after=after, block_size=max_extries)
+		vids = YouTube.__get_videos_by_playlist("UCq6VFHwMzcMXbuKyG7SQYIg", "uploads", after=after, block_size=max_extries)
 
 		# Pull Moist Charlie Clips videos
-		vids += YouTube.__get_videos_by_playlist("MoistCharlieClips", "uploads", after=after, block_size=max_extries)
+		vids += YouTube.__get_videos_by_playlist("UC4EQHfzIbkL_Skit_iKt1aA", "uploads", after=after, block_size=max_extries)
 
 		# Sort by date
 		vids.sort(key=lambda v: v.tm, reverse=True)
@@ -76,7 +76,7 @@ class YouTube():
 
 
 	# Returns All of the Videos in a Given Playlist as Video Objects
-	def __get_videos_by_playlist(username, playlist_name, before=None, after=None, block_size=20):
+	def __get_videos_by_playlist(channel_id, playlist_name, before=None, after=None, block_size=20):
 
 		if (before and (after > before)):
 			raise Exception("In get_videos_by_playlist(): 'after' should not be greater then 'before'")
@@ -86,7 +86,7 @@ class YouTube():
 		first = True
 
 		# Get Playlist id
-		response = YouTube.rqst.get(YouTube.API_BASE_URL + "channels?part=contentDetails&forUsername={u}&key={key}".format(key=YouTube.API_KEY, u=username))
+		response = YouTube.rqst.get(YouTube.API_BASE_URL + "channels?part=contentDetails&id={id}&key={key}".format(key=YouTube.API_KEY, id=channel_id))
 		playlist_id = response.json()["items"][0]["contentDetails"]["relatedPlaylists"][playlist_name]
 
 		while running:
