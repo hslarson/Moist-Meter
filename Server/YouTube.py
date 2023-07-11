@@ -65,7 +65,14 @@ class YouTube():
 			max_extries = 20
 
 		# Pull penguinz0 videos
-		return YouTube.__get_videos_by_playlist("penguinz0", "uploads", after=after, block_size=max_extries)
+		vids = YouTube.__get_videos_by_playlist("penguinz0", "uploads", after=after, block_size=max_extries)
+
+		# Pull Moist Charlie Clips videos
+		vids += YouTube.__get_videos_by_playlist("MoistCharlieClips", "uploads", after=after, block_size=max_extries)
+
+		# Sort by date
+		vids.sort(key=lambda v: v.tm, reverse=True)
+		return vids
 
 
 	# Returns All of the Videos in a Given Playlist as Video Objects

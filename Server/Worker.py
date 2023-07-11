@@ -57,7 +57,7 @@ class Worker():
 
 			# Load the Data File and make sure it's sorted
 			contents = FileOps.load_data()
-			Worker.__sort(contents)
+			contents.sort(key=lambda v: v["date"], reverse=True)
 
 			# Iterate Over the New Moist Meters
 			notifications = []
@@ -143,9 +143,11 @@ class Worker():
 		contents = FileOps.load_data()
 
 		# Sort the List (Newest -> Oldest)
-		if (Worker.__sort(contents)):
+		sorted_contents = sorted(contents, key=lambda v: v["date"], reverse=True)
+		if (contents != sorted_contents):
 			logger.warning("List Was Out of Order")
 			altered = True
+		contents = sorted_contents
 
 		# Pull Uploads
 		moist_meters = YouTube.filter_moist_meters(YouTube.pull_uploads(FIRST_MOIST_METER))
@@ -238,33 +240,3 @@ class Worker():
 			file.close()
 		else:
 			raise Exception("config.json Could Not be Written To")
-
-
-	# Perform a simple selection sort
-	# Post Condition: Objects ordered from newest to oldest
-	def __sort(contents):
-
-		lindex = 0
-		altered = False
-		end = len(contents)
-		while (lindex < end):
-
-			# Search for highest date
-			highest_date  = contents[lindex]["date"]
-			highest_index = lindex
-			rindex = lindex + 1
-			while (rindex < end):
-				if (contents[rindex]["date"] > highest_date):
-					highest_date = contents[rindex]["date"]
-					highest_index = rindex
-					altered = True
-
-				rindex += 1
-
-			# Swap elements if necessary
-			temp = contents[highest_index]
-			contents[highest_index] = contents[lindex]
-			contents[lindex] = temp
-			lindex += 1
-
-		return altered
