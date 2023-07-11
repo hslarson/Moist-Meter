@@ -71,7 +71,7 @@ class YouTube():
 		vids += YouTube.__get_videos_by_playlist("UC4EQHfzIbkL_Skit_iKt1aA", "uploads", after=after, block_size=max_extries)
 
 		# Sort by date
-		vids.sort(key=lambda v: v.data, reverse=True)
+		vids.sort(key=lambda v: v.date, reverse=True)
 		return vids
 
 
