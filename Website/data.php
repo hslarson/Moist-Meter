@@ -15,7 +15,31 @@
 			/* Construct the Score String */
 			$score_str = (is_numeric($elem["score"]) ? "" : "000") . $elem["score"]; /* Pad Non-Numeric Scores with 0's */
 			while (strlen($score_str) < 3) { $score_str = "0" . $score_str; }
-			$score_str .= (isset($elem["award"]) ? "%%%" . $elem["award"] : ""); /* Add Award */
+
+			/* Add Award*/
+			if (isset($elem["award"])) {
+				$score_str .= "%%%";
+
+				/* Add priority number for sorting */
+				$award = strtolower($elem["award"]);
+				if (
+					(strpos($award, "2nd") !== FALSE) ||
+					(strpos($award, "3rd") !== FALSE) ||
+					(strpos($award, "4th") !== FALSE) ||
+					(strpos($award, "5th") !== FALSE) ||
+					(strpos($award, "6th") !== FALSE) ||
+					(strpos($award, "7th") !== FALSE) ||
+					(strpos($award, "8th") !== FALSE) ||
+					(strpos($award, "9th") !== FALSE)
+				) { $score_str .= strval(10-(int)(strpbrk($award, "23456789")[0])); }
+				else { $score_str .=  "9"; }
+
+				/* Add 'w' or 'b' to indicate "worst of" or "best of" selection */
+				$score_str .= (strpos($award, "best") !== FALSE) ? "b" : "w";
+
+				/* Add tooltip text */
+				$score_str .= $elem["award"];
+			}
 
 			/* Push to Array */
 			$obj = [];

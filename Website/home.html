@@ -180,9 +180,7 @@
 		}
 
 		function titleFormatter(value) {
-			const split_chars = "%%%";
-			let temp = value.split(split_chars);
-
+			let temp = value.split("%%%");
 			return "<a target='_blank' rel='noopener noreferrer' href='https://www.youtube.com/watch?v=" + temp[1] + "''>" + temp[0] + "</a>";
 		}
 
@@ -190,22 +188,15 @@
 			while (value[0] == '0') { value = value.slice(1); }
 
 			if (value.includes("%%%")) {
-
 				/* Separate the String */
 				var start = value.indexOf("%%%");
 				var score = value.substr(0, start);
-				var award = value.substr(start + 3);
+				var award = value.substr(start+5);
 
 				/* Add Award Image to the Score */
-				if (award.toLowerCase().includes("worst")||(award.toLowerCase().includes("best"))) {
-
-					var icon_url = (award.toLowerCase().includes("worst") ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
-					var award_icon = "<img class='d-none d-lg-block ml-1' alt='' width='16' height='16' src='" + icon_url + "' />";
-					value = "<span data-toggle='tooltip' data-placement='left' class='row align-items-center m-0' title='" + award + "'>" + score + award_icon + "</span>";
-				}
-				else {
-					value = score;
-				}
+				var icon_url = (value.charAt(start+4) === 'w' ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
+				var award_icon = "<img class='d-none d-lg-block ml-1' alt='' width='16' height='16' src='" + icon_url + "' />";
+				value = "<span data-toggle='tooltip' data-placement='left' class='row align-items-center m-0' title='" + award + "'>" + score + award_icon + "</span>";
 			}
 			return value;
 		}
