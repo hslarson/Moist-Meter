@@ -12,16 +12,28 @@
 			/* Format Title */
 			$title = trim( str_replace("Moist Meter:", "", str_replace("Moist Meter |", "", strval($elem["title"]))) );
 
-			/* Construct the Score String */
-			$score_str = (is_numeric($elem["score"]) ? "" : "000") . $elem["score"]; /* Pad Non-Numeric Scores with 0's */
-			while (strlen($score_str) < 3) { $score_str = "0" . $score_str; }
+			/* Construct the Score String
+				- 3 numeric characters for score. 000 if score has aplha characters
+				- x characters for text. Usually "N/A" if anything
+				- 3 separator characters: %%%
+				- 2 numeric characters for sorting awards 
+					- 01-09 -> "Worst of..."
+					- 10    -> No award
+					- 11-19 -> "Best of..."
+				- x characters of award text. Will be displayed in tooltip
+			*/
+			$score_str = (is_numeric($elem["score"]) ? "" : "000") . $elem["score"];
+			$score_str = str_pad($score_str, 3, "0", STR_PAD_LEFT) . "%%%";
 
 			/* Add Award*/
-			if (isset($elem["award"])) {
-				$score_str .= "%%%";
+			if (isset($elem["award"])) {				
+				$award = strtolower($elem["award"]);
+
+				/* Get award type */ 
+				$best = strpos($award, "best") !== FALSE;
+				$score_str .=  $best ? "1" : "0";
 
 				/* Add priority number for sorting */
-				$award = strtolower($elem["award"]);
 				if (
 					(strpos($award, "2nd") !== FALSE) ||
 					(strpos($award, "3rd") !== FALSE) ||
@@ -31,15 +43,16 @@
 					(strpos($award, "7th") !== FALSE) ||
 					(strpos($award, "8th") !== FALSE) ||
 					(strpos($award, "9th") !== FALSE)
-				) { $score_str .= strval(10-(int)(strpbrk($award, "23456789")[0])); }
-				else { $score_str .=  "9"; }
-
-				/* Add 'w' or 'b' to indicate "worst of" or "best of" selection */
-				$score_str .= (strpos($award, "best") !== FALSE) ? "b" : "w";
+				) {
+					$pri = (int)(strpbrk($award, "23456789")[0]);
+					$score_str .= strval($best ? 10-$pri : $pri); 
+				}
+				else { $score_str .=  $best ? "9" : "1"; }
 
 				/* Add tooltip text */
 				$score_str .= $elem["award"];
 			}
+			else { $score_str .= "10"; }
 
 			/* Push to Array */
 			$obj = [];

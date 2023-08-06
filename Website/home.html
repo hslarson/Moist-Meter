@@ -176,7 +176,7 @@
 	<script>
 		function dateFormatter(value) {
 			var d = new Date(value * 1000);
-			return ('0' + (d.getMonth() + 1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear().toString().substr(-2);
+			return ('0' + (d.getMonth() + 1)).slice(-2) + "/" + ('0' + d.getDate()).slice(-2) + "/" + d.getFullYear().toString().slice(-2);
 		}
 
 		function titleFormatter(value) {
@@ -185,20 +185,18 @@
 		}
 
 		function scoreFormatter(value) {
-			while (value[0] == '0') { value = value.slice(1); }
+			let temp = value.split("%%%");
+			let score = temp[0];
+			while (score[0] == '0') { score = score.slice(1); }
 
-			if (value.includes("%%%")) {
-				/* Separate the String */
-				var start = value.indexOf("%%%");
-				var score = value.substr(0, start);
-				var award = value.substr(start+5);
-
+			let priority = parseInt(temp[1].slice(0,2));
+			if (priority != 10) {
 				/* Add Award Image to the Score */
-				var icon_url = (value.charAt(start+4) === 'w' ? 'assets/moisty-worst.png' : 'assets/moisty-best.png');
+				var icon_url = priority < 10 ? 'assets/moisty-worst.png' : 'assets/moisty-best.png';
 				var award_icon = "<img class='d-none d-lg-block ml-1' alt='' width='16' height='16' src='" + icon_url + "' />";
-				value = "<span data-toggle='tooltip' data-placement='left' class='row align-items-center m-0' title='" + award + "'>" + score + award_icon + "</span>";
+				score = "<span data-toggle='tooltip' data-placement='left' class='row align-items-center m-0' title='" + temp[1].slice(2) + "'>" + score + award_icon + "</span>";
 			}
-			return value;
+			return score;
 		}
 	</script>
 
