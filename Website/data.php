@@ -12,6 +12,10 @@
 			/* Format Title */
 			$title = trim( str_replace("Moist Meter:", "", str_replace("Moist Meter |", "", strval($elem["title"]))) );
 
+			/* Check for Alternate URL */
+			$url = "";
+			if (isset($elem["url"])) { $url = "%%%" . $elem["url"]; }
+
 			/* Construct the Score String
 				- 3 numeric characters for score. 000 if score has aplha characters
 				- x characters for text. Usually "N/A" if anything
@@ -29,11 +33,11 @@
 			if (isset($elem["award"])) {				
 				$award = strtolower($elem["award"]);
 
-				/* Get award type */ 
+				/* Get Award Type */ 
 				$best = strpos($award, "best") !== FALSE;
 				$score_str .=  $best ? "1" : "0";
 
-				/* Add priority number for sorting */
+				/* Add Priority Number for Sorting */
 				if (
 					(strpos($award, "2nd") !== FALSE) ||
 					(strpos($award, "3rd") !== FALSE) ||
@@ -49,7 +53,7 @@
 				}
 				else { $score_str .=  $best ? "9" : "1"; }
 
-				/* Add tooltip text */
+				/* Add Tooltip Text */
 				$score_str .= $elem["award"];
 			}
 			else { $score_str .= "10"; }
@@ -59,7 +63,7 @@
 			$obj["num"] = count($data) - $key;
 			$obj["date"] = $elem["date"];
 			$obj["category"] = $elem["category"];
-			$obj["title_id"] = $title . "%%%" . $elem["id"];
+			$obj["title_id"] = $title . "%%%" . $elem["id"] . $url;
 			$obj["score"] = $score_str;
 			array_push($out, $obj);
 		}

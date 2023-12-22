@@ -181,6 +181,7 @@
 
 		function titleFormatter(value) {
 			let temp = value.split("%%%");
+			if (temp.length > 2) { return "<a target='_blank' rel='noopener noreferrer' href='" + temp[2] + "''>" + temp[0] + "</a>"; }
 			return "<a target='_blank' rel='noopener noreferrer' href='https://www.youtube.com/watch?v=" + temp[1] + "''>" + temp[0] + "</a>";
 		}
 
