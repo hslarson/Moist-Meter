@@ -189,8 +189,9 @@ class Worker():
 
 					break
 			else:
-				logger.warning(f"Found No Matching Video for {data_obj['title']}")
-				notifications.append((f"Found No Matching Video for {data_obj['title']}", data_obj["id"]))
+				if ("removed" not in Worker.audit_settings) or (data_obj["id"] not in Worker.audit_settings["removed"]):
+					logger.warning(f"Found No Matching Video for {data_obj['title']}")
+					notifications.append((f"Found No Matching Video for {data_obj['title']}", data_obj["id"]))
 
 		if altered:
 
