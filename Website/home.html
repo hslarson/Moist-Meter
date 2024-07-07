@@ -43,7 +43,6 @@
     <link rel="preload" href="./assets/jumbotron-icon-1.png" as="image" />
 	<link rel="preload" href="./assets/moisty-best.png" as="image" />
 	<link rel="preload" href="./assets/moisty-worst.png" as="image" />
-    <link rel="preload" href="./data.php" as="fetch" crossorigin="anonymous" />
 </head>
 
 
@@ -101,15 +100,29 @@
 		/* Generate the Main Table */
 		$(async function() {
 			$.ajax({
-				url: "./data.php",
+				url: "./table-data/data-min.json",
 				type: 'get',
-
 				success: async function (d, t, xhr) {
 					/* console.log("Success: "); console.log(xhr.responseJSON); */
-					
 					var resp = xhr.responseJSON;
-					$("#quote").html("<em>" + String(resp.quote) + "</em>");
-					$('#table').bootstrapTable({ data: resp.data });
+					$('#table').bootstrapTable({ data: resp });
+				},
+				error: async function (req, err) {
+					/* console.log("Error: " + err) */;
+				}
+			});
+		});
+		
+		/* Get random quote */
+		$(async function() {
+			$.ajax({
+				url: "./table-data/quotes.json",
+				type: 'get',
+				success: async function (d, t, xhr) {
+					/* console.log("Success: "); console.log(xhr.responseJSON); */
+					var resp = xhr.responseJSON;
+					const rand_idx = Math.floor(Math.random() * resp.length);
+					$("#quote").html("<em>" + String(resp[rand_idx]) + "</em>");
 				},
 				error: async function (req, err) {
 					/* console.log("Error: " + err) */;
