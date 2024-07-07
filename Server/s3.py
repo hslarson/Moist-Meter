@@ -100,9 +100,10 @@ class S3():
 			remote_path = f"table-data/{file_name}"
 			S3._logger.debug(f"Sending {local_path} to S3 {remote_path}...")
 			response = S3._s3_client.upload_file(
-				local_path, 
-				S3._bucket_name, 
-				remote_path
+				Filename=local_path, 
+				Bucket=S3._bucket_name, 
+				Key=remote_path,
+				ExtraArgs={'ContentType': 'application/json'}
 			)
 			# TODO: Check response?
 			S3._logger.debug(f"File uploaded successfully. Response={response}")
