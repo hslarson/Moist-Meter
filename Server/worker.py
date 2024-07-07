@@ -35,7 +35,6 @@ class Worker():
 		try:
 			Worker._last_modified = config["data_last_modified"]
 			Worker._poll_settings = config["poll_settings"]
-			Worker._poll_settings["last_vid"] = Worker._poll_settings["last_poll"]
 			Worker._audit_settings = config["audit_settings"]
 		except KeyError:
 			Worker._logger.error("config.json missing info")
@@ -56,13 +55,13 @@ class Worker():
 		Worker._logger.debug("Polling")
 
 		# Pull YouTube Data
-		start = Worker._poll_settings["last_vid"]
+		start = Worker._poll_settings["last_vid_date"]
 		if custom_start_time >= 0:
 			start = custom_start_time
 
 		uploads = YouTube.pull_uploads(start)
 		if len(uploads):
-			Worker._poll_settings["last_vid"] = uploads[0].date + 1
+			Worker._poll_settings["last_vid_date"] = uploads[0].date + 1
 		
 		moist_meters = [vid for vid in uploads if vid.is_moist_meter()]
 
@@ -202,6 +201,7 @@ class Worker():
 		# Alter the last poll/audit variables
 		contents["data_last_modified"] = Worker._last_modified
 		contents["poll_settings"]["last_poll"]   = Worker._poll_settings["last_poll"]
+		contents["poll_settings"]["last_vid_date"] = Worker._poll_settings["last_vid_date"]
 		contents["audit_settings"]["last_audit"] = Worker._audit_settings["last_audit"]
 
 		# Replace the contents of the config file
