@@ -51,6 +51,11 @@ class S3():
 			S3._logger.error("secrets.json missing info")
 			raise
 
+		# Set log levels for boto3
+		logging.getLogger('boto3').setLevel(logging.INFO)
+		logging.getLogger('botocore').setLevel(logging.INFO)
+		logging.getLogger('s3transfer').setLevel(logging.INFO)
+
 		# Initialize the AWS S3 wrapper module
 		try:
 			S3._logger.debug("Starting AWS S3 session")
