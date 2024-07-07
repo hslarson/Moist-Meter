@@ -7,7 +7,7 @@
 
 <a href="https://www.moistmeter.org"><img src="https://img.shields.io/website?down_color=red&down_message=down&up_color=green&up_message=up&url=http%3A%2F%2Fwww.moistmeter.org" alt="website status" /></a>
 <img src="https://img.shields.io/github/last-commit/hslarson/Moist-meter" alt="github last commit" />
-<img src="https://img.shields.io/maintenance/yes/2023" alt="maintenance status" />
+<img src="https://img.shields.io/maintenance/yes/2024" alt="maintenance status" />
 <img src="https://img.shields.io/github/license/hslarson/moist-meter" alt="github license" />
 
 
