@@ -12,6 +12,7 @@
 	},
 	"audit_settings" : {
 		"audit_frequency_seconds" : 43200,
-		"last_audit" : 1228486548.4597979
+		"last_audit" : 1228486548.4597979,
+		"removed" : ["ID of a deleted video"]
 	}
 }

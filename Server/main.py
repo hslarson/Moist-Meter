@@ -32,7 +32,7 @@ Path(logs_path).mkdir(parents=True, exist_ok=True)
 logs_file = os.path.join(logs_path, "moist_meter.log")
 
 handler = logging.FileHandler(logs_file, 'a', 'utf-8')
-handler.setFormatter(logging.Formatter('%(asctime)s (%(name)s):%(levelname)s) --> %(message)s', datefmt='%m-%d-%y %H:%M:%S'))
+handler.setFormatter(logging.Formatter('%(asctime)s (%(name)s:%(levelname)s) --> %(message)s', datefmt='%m-%d-%y %H:%M:%S'))
 
 logger = logging.getLogger()
 logger.addHandler(handler)

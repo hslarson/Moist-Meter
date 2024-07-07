@@ -75,7 +75,7 @@ class Worker():
 		if remote_last_modified > Worker._last_modified:
 			Worker._logger.info("Remote file was modified, updating minified data file")
 			Worker._optimize_json(contents)
-			S3.put_data(S3.min_file_name, f"/table-data/{S3.min_file_name}")
+			S3.put_data(S3.min_file_name)
 
 		# If a new Moist Meter is found, append it to the list
 		if len(moist_meters):
@@ -169,7 +169,7 @@ class Worker():
 				filepath = os.path.join(S3.module_dir, S3.data_file_name)
 				with open(filepath, 'w') as file:
 					json.dump(contents, file, indent='\t', separators=(',',' : '))
-				S3.put_data(S3.data_file_name, f"/table-data/{S3.data_file_name}")
+				S3.put_data(S3.data_file_name)
 				Worker._last_modified = int(os.path.getmtime(filepath))
 			except:
 				Worker._logger.error("Failed to update data file")
@@ -345,5 +345,5 @@ class Worker():
 				raise
 
 			notifications.clear()
-			S3.put_data(S3.data_file_name, f"/table-data/{S3.data_file_name}")
+			S3.put_data(S3.data_file_name)
 			Worker._last_modified = int(os.path.getmtime(filepath))

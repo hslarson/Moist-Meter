@@ -75,7 +75,7 @@ class S3():
 			S3._logger.debug("Downloading data file from S3...")
 			response = S3._s3_client.download_file(
 				S3._bucket_name,
-				S3.data_file_name,
+				f"table-data/{S3.data_file_name}",
 				os.path.join(S3.module_dir, S3.data_file_name)
 			)
 			S3._logger.debug(f"Data downloaded successfully. Response={response}")
@@ -86,17 +86,18 @@ class S3():
 
 
 	@staticmethod
-	def put_data(local_path, remote_path):
+	def put_data(file_name):
 		"""
 		Send a file to the S3 server
 
 		Parameters:
-		- local_path (str): The relative path to the local file we wish to upload
-		- remote_path (str): The relative path to the file in the S3 bucket
+		- file_name (str): The name of the file to upload
 		"""
 		try:
+			local_path = os.path.join(S3.module_dir, file_name)
 			assert S3.file_exists(local_path), f"Could not find the local file {local_path}"
 
+			remote_path = f"table-data/{file_name}"
 			S3._logger.debug(f"Sending {local_path} to S3 {remote_path}...")
 			response = S3._s3_client.upload_file(
 				local_path, 
