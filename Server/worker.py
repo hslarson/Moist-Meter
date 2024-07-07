@@ -1,5 +1,6 @@
 """Main worker that handles polling and auditing"""
 
+from cloudflare import CloudFlare
 from pushover import Pushover
 from youtube import *
 from s3 import S3
@@ -76,6 +77,7 @@ class Worker():
 			Worker._optimize_json(contents)
 			S3.put_data(S3.min_file_name)
 			Worker._last_modified = int(os.path.getmtime(os.path.join(S3.module_dir, S3.data_file_name)))
+			CloudFlare.purge_cache()
 
 		# If a new Moist Meter is found, append it to the list
 		if len(moist_meters):
