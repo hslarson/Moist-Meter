@@ -74,8 +74,12 @@ class S3():
 
 
 	@staticmethod
-	def get_data():
-		"""Download the data file from S3 and save it locally"""
+	def _get_data():
+		"""
+		Download the data file from S3 and save it locally
+
+		Returns (int): The last modified epoch timestamp
+		"""
 		try:
 			S3._logger.debug("Downloading data file from S3...")
 			response = S3._s3_client.download_file(
@@ -85,6 +89,7 @@ class S3():
 			)
 			S3._logger.debug(f"Data downloaded successfully. Response={response}")
 			# TODO: Check response?
+			return response['ResponseMetadata']['HTTPHeaders']["LastModified"].timestamp()
 		except:
 			S3._logger.error("Failed to load data file from S3")
 			raise
@@ -138,20 +143,22 @@ class S3():
 		Parameters:
 		- pull (bool): If True, retrieve new data from the server
 
-		Returns (list): The contents of the data file
+		Returns (tuple): 
+		- (list): The contents of the data file
+		- (int): The last modified timestamp
 		"""
 		# Relative path to the data
 		data_path = os.path.join(S3.module_dir, S3.data_file_name)
 
 		# Get fresh data from server
 		if pull or not S3.file_exists(data_path):
-			S3.get_data()
+			last_modified = S3._get_data()
 
 		try:
 			# Return the data as a list
 			with open(data_path, "r") as file:
 				contents = json.load(file)
-				return list(contents)
+				return list(contents), last_modified
 		except:
 			S3._logger.error("Failed to read list from data file")
 			raise

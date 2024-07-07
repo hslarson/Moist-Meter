@@ -67,11 +67,10 @@ class Worker():
 		moist_meters = [vid for vid in uploads if vid.is_moist_meter()]
 
 		# Load the data file and make sure it's sorted
-		contents = S3.list_data()
+		contents, remote_last_modified = S3.list_data()
 		contents.sort(key=lambda v: v["date"], reverse=True)
 
 		# Check modified time and update minified file if needed
-		remote_last_modified = int(os.path.getmtime(os.path.join(S3.module_dir, S3.data_file_name)))
 		if remote_last_modified > Worker._last_modified:
 			Worker._logger.info("Remote file was modified, updating minified data file")
 			Worker._optimize_json(contents)
@@ -114,7 +113,7 @@ class Worker():
 		Worker.poll(FIRST_MOIST_METER)
 
 		# Load the data file
-		contents = S3.list_data()
+		contents, _ = S3.list_data()
 
 		# Sort the list (newest -> oldest)
 		sorted_contents = sorted(contents, key=lambda v: v["date"], reverse=True)
