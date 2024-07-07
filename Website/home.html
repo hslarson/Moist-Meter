@@ -43,6 +43,8 @@
     <link rel="preload" href="./assets/jumbotron-icon-1.png" as="image" />
 	<link rel="preload" href="./assets/moisty-best.png" as="image" />
 	<link rel="preload" href="./assets/moisty-worst.png" as="image" />
+	<link rel="preload" href="./table-data/data-min.json" as="fetch" type="application/json" crossorigin="anonymous">
+    <link rel="preload" href="./table-data/quotes.json" as="fetch" type="application/json" crossorigin="anonymous">
 </head>
 
 
@@ -103,9 +105,8 @@
 				url: "./table-data/data-min.json",
 				type: 'get',
 				success: async function (d, t, xhr) {
-					/* console.log("Success: "); console.log(xhr.responseJSON); */
-					var resp = xhr.responseJSON;
-					$('#table').bootstrapTable({ data: resp });
+					/* console.log("Success: "); console.log(d); */
+					$('#table').bootstrapTable({ data: d });
 				},
 				error: async function (req, err) {
 					/* console.log("Error: " + err) */;
@@ -119,10 +120,9 @@
 				url: "./table-data/quotes.json",
 				type: 'get',
 				success: async function (d, t, xhr) {
-					/* console.log("Success: "); console.log(xhr.responseJSON); */
-					var resp = xhr.responseJSON;
-					const rand_idx = Math.floor(Math.random() * resp.length);
-					$("#quote").html("<em>" + String(resp[rand_idx]) + "</em>");
+					/* console.log("Success: "); console.log(d); */
+					var rand_idx = Math.floor(Math.random() * d.length);
+					$("#quote").html("<em>" + String(d[rand_idx]) + "</em>");
 				},
 				error: async function (req, err) {
 					/* console.log("Error: " + err) */;
