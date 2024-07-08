@@ -169,7 +169,7 @@ class Worker():
 			# Update the remote file if any changes were made
 			try:
 				Worker._logger.debug("Updating data file")
-				data = json.dump(contents, indent='\t', separators=(',',' : '))
+				data = json.dumps(contents, indent='\t', separators=(',',' : '))
 				S3.put_data(S3.data_file_path, data)
 				Worker._logger.debug("Data file updated successfully")
 			except:
@@ -333,7 +333,7 @@ class Worker():
 			# Update the file if any changes were made
 			try:
 				Worker._logger.debug("Updating data file")
-				data = json.dump(current_data, indent='\t', separators=(',',' : '))
+				data = json.dumps(current_data, indent='\t', separators=(',',' : '))
 				S3.put_data(S3.data_file_path, data)
 				Worker._logger.debug("Data file updated successfully")
 			except:
