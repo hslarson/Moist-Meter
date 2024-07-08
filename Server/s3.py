@@ -87,7 +87,8 @@ class S3():
 				Bucket=S3._bucket_name,
 				Key=remote_file,
 				Body=json_str.encode('utf-8'),
-				Metadata={'ContentType': 'application/json'}
+				ContentEncoding='utf-8',
+				ContentType='application/json'
 			)
 			# TODO: Check response?
 			S3._logger.debug(f"File uploaded successfully. Response={response}")
