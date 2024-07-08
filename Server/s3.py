@@ -136,7 +136,7 @@ class S3():
 
 		# Fetch file header from S3
 		try:
-			S3._logger(f"Reading last modified timestamp for {remote_path}")
+			S3._logger.debug(f"Reading last modified timestamp for {remote_path}")
 			response = S3._s3_client.head_object(
 				Bucket=S3._bucket_name, 
 				Key=remote_path
