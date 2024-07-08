@@ -1,10 +1,9 @@
 {
-	"data_last_modified" : 0,
 	"allow_pushover_notifications" : true,
 	"aws_settings" : {
 		"bucket_name" : "Your Bucket Name",
-		"data_file_name" : "data.json",
-		"min_file_name" : "data-min.json"
+		"data_file_path" : "path/to/data.json",
+		"min_file_path" : "path/to/data-min.json"
 	},
 	"poll_settings" : {
 		"poll_frequency_seconds" : 3600,

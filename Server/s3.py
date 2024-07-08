@@ -14,9 +14,8 @@ class S3():
 	_s3_client = None
 	_bucket_name = None
 	
-	data_file_name = None
-	min_file_name = None
-	module_dir = os.path.dirname(os.path.realpath(__file__)) 
+	data_file_path = None
+	min_file_path = None 
 
 
 	@staticmethod
@@ -36,8 +35,8 @@ class S3():
 		# Retrieve bucket and file names from config
 		try:
 			S3._bucket_name = config["aws_settings"]["bucket_name"]
-			S3.data_file_name = config["aws_settings"]["data_file_name"]
-			S3.min_file_name = config["aws_settings"]["min_file_name"]
+			S3.data_file_path = config["aws_settings"]["data_file_path"]
+			S3.min_file_path = config["aws_settings"]["min_file_path"]
 		except KeyError:
 			S3._logger.error("config.json missing info")
 			raise
@@ -74,91 +73,78 @@ class S3():
 
 
 	@staticmethod
-	def _get_data():
+	def put_data(remote_file, json_str):
 		"""
-		Download the data file from S3 and save it locally
-
-		Returns (int): The last modified epoch timestamp
-		"""
-		try:
-			S3._logger.debug("Downloading data file from S3...")
-			response = S3._s3_client.download_file(
-				S3._bucket_name,
-				f"table-data/{S3.data_file_name}",
-				os.path.join(S3.module_dir, S3.data_file_name)
-			)
-			S3._logger.debug(f"Data downloaded successfully. Response={response}")
-			# TODO: Check response?
-			return response['ResponseMetadata']['HTTPHeaders']["LastModified"].timestamp()
-		except:
-			S3._logger.error("Failed to load data file from S3")
-			raise
-
-
-	@staticmethod
-	def put_data(file_name):
-		"""
-		Send a file to the S3 server
+		Send a JSON file to the S3 server
 
 		Parameters:
-		- file_name (str): The name of the file to upload
+		- remote_file (str): The file path of the data in the S3 bucket
+		- json_str (str): The JSON contents to put in the remote file
 		"""
 		try:
-			local_path = os.path.join(S3.module_dir, file_name)
-			assert S3.file_exists(local_path), f"Could not find the local file {local_path}"
-
-			remote_path = f"table-data/{file_name}"
-			S3._logger.debug(f"Sending {local_path} to S3 {remote_path}...")
-			response = S3._s3_client.upload_file(
-				Filename=local_path, 
-				Bucket=S3._bucket_name, 
-				Key=remote_path,
-				ExtraArgs={'ContentType': 'application/json'}
+			S3._logger.debug(f"Sending data to S3 {remote_file}...")
+			response = S3._s3_client.put_object(
+				Bucket=S3._bucket_name,
+				Key=remote_file,
+				Body=json_str.encode('utf-8'),
+				Metadata={'ContentType': 'application/json'}
 			)
 			# TODO: Check response?
 			S3._logger.debug(f"File uploaded successfully. Response={response}")
 		except:
 			S3._logger.error("Failed to upload file to S3")
 			raise
-	
-
-	@staticmethod
-	def file_exists(rel_path):
-		"""
-		Check if a file exists
-
-		Parameters:
-		- rel_path (str): The relative path to the file
-
-		Returns (bool): True if the file exists
-		"""
-		return os.path.isfile(os.path.join(S3.module_dir, rel_path))
 
 
 	@staticmethod
-	def list_data(pull=True):
+	def list_data():
 		"""
 		Get the contents of the data file as a list.
-
-		Parameters:
-		- pull (bool): If True, retrieve new data from the server
 
 		Returns (tuple): 
 		- (list): The contents of the data file
 		- (int): The last modified timestamp
 		"""
-		# Relative path to the data
-		data_path = os.path.join(S3.module_dir, S3.data_file_name)
-
-		# Get fresh data from server
-		if pull or not S3.file_exists(data_path):
-			last_modified = S3._get_data()
-
 		try:
-			# Return the data as a list
-			with open(data_path, "r") as file:
-				contents = json.load(file)
-				return list(contents), last_modified
+			S3._logger.debug("Downloading data file from S3...")
+
+			# Get the object and its metadata
+			response = S3._s3_client.get_object(
+				Bucket=S3._bucket_name, 
+				Key=S3.data_file_path
+			)
+			S3._logger.debug(f"Data downloaded successfully. Response={response}")
+
+			# Read and decode the contents of the file
+			file_content = response['Body'].read().decode('utf-8')
+			return list(json.loads(file_content))
 		except:
-			S3._logger.error("Failed to read list from data file")
+			S3._logger.error("Failed to load data file from S3")
+			raise
+
+
+	@staticmethod
+	def last_modified(remote_path):
+		"""
+		Get the last modified timestamp of a remote file.
+		
+		Parameters:
+		- remote_path (str): The location of the file in the S3 bucket
+
+		Returns (int): The epoch timestamp indicating when the file was last modified
+		"""
+
+		# Fetch file header from S3
+		try:
+			S3._logger(f"Reading last modified timestamp for {remote_path}")
+			response = S3._s3_client.head_object(
+				Bucket=S3._bucket_name, 
+				Key=remote_path
+			)
+			S3._logger.debug(f"Got header. Response={response}")
+
+			# TODO: Check response?
+			return int(response['LastModified'].timestamp())
+		except:
+			S3._logger.error("Failed to read last modified timestamp")
 			raise

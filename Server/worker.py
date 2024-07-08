@@ -15,7 +15,6 @@ class Worker():
 
 	# Static members
 	_logger = None
-	_last_modified = None
 	_poll_settings = None
 	_audit_settings = None
 
@@ -34,7 +33,6 @@ class Worker():
 
 		# Read from config file
 		try:
-			Worker._last_modified = config["data_last_modified"]
 			Worker._poll_settings = config["poll_settings"]
 			Worker._audit_settings = config["audit_settings"]
 		except KeyError:
@@ -66,21 +64,24 @@ class Worker():
 		
 		moist_meters = [vid for vid in uploads if vid.is_moist_meter()]
 
-		# Load the data file and make sure it's sorted
-		contents, remote_last_modified = S3.list_data()
-		contents.sort(key=lambda v: v["date"], reverse=True)
+		# Get the last modified timestamps of the regular and minified data files
+		data_last_modified = S3.last_modified(S3.data_file_path)
+		min_last_modified  = S3.last_modified(S3.min_file_path)
+		
+		if len(moist_meters) or (data_last_modified > min_last_modified):
+			# Load the data file and make sure it's sorted
+			contents = S3.list_data()
+			contents.sort(key=lambda v: v["date"], reverse=True)
 
-		# Check modified time and update minified file if needed
-		if remote_last_modified > Worker._last_modified:
-			Worker._logger.info("Remote file was modified, updating minified data file")
-			Worker._optimize_json(contents)
-			S3.put_data(S3.min_file_name)
-			Worker._last_modified = int(os.path.getmtime(os.path.join(S3.module_dir, S3.data_file_name)))
+			# If a new Moist Meter is found, append it to the list
+			if len(moist_meters):
+				Worker._handle_moist_meters(moist_meters, contents)
+
+			# Update the minified data file
+			Worker._logger.info("Data file was modified. Updating minified data file")
+			data = Worker._optimize_json(contents)
+			S3.put_data(S3.min_file_path, data)
 			CloudFlare.purge_cache()
-
-		# If a new Moist Meter is found, append it to the list
-		if len(moist_meters):
-			Worker._handle_moist_meters(moist_meters, contents)
 
 		# Update last_poll last 
 		# This way if errors are encountered the poll will retry from the previous last_poll
@@ -113,7 +114,7 @@ class Worker():
 		Worker.poll(FIRST_MOIST_METER)
 
 		# Load the data file
-		contents, _ = S3.list_data()
+		contents = S3.list_data()
 
 		# Sort the list (newest -> oldest)
 		sorted_contents = sorted(contents, key=lambda v: v["date"], reverse=True)
@@ -165,13 +166,12 @@ class Worker():
 					notifications.append((f"Found No Matching Video for {data_obj['title']}", data_obj["id"]))
 
 		if altered:
-			# Update the file if any changes were made
+			# Update the remote file if any changes were made
 			try:
-				filepath = os.path.join(S3.module_dir, S3.data_file_name)
-				with open(filepath, 'w') as file:
-					json.dump(contents, file, indent='\t', separators=(',',' : '))
-				S3.put_data(S3.data_file_name)
-				Worker._last_modified = int(os.path.getmtime(filepath))
+				Worker._logger.debug("Updating data file")
+				data = json.dump(contents, indent='\t', separators=(',',' : '))
+				S3.put_data(S3.data_file_path, data)
+				Worker._logger.debug("Data file updated successfully")
 			except:
 				Worker._logger.error("Failed to update data file")
 				raise
@@ -190,9 +190,10 @@ class Worker():
 		"""Updates last_poll and last_audit fields in config.json"""
 
 		# Read the config file
+		module_dir = os.path.dirname(os.path.realpath(__file__))
 		try:
 			Worker._logger.debug("Reading config file...")
-			with open(os.path.join(S3.module_dir, "config.json"), "r") as file:
+			with open(os.path.join(module_dir, "config.json"), "r") as file:
 				contents = json.load(file)
 			Worker._logger.debug("Config file read successfully")
 		except:
@@ -200,7 +201,6 @@ class Worker():
 			raise
 
 		# Alter the last poll/audit variables
-		contents["data_last_modified"] = Worker._last_modified
 		contents["poll_settings"]["last_poll"]   = Worker._poll_settings["last_poll"]
 		contents["poll_settings"]["last_vid_date"] = Worker._poll_settings["last_vid_date"]
 		contents["audit_settings"]["last_audit"] = Worker._audit_settings["last_audit"]
@@ -208,7 +208,7 @@ class Worker():
 		# Replace the contents of the config file
 		try:
 			Worker._logger.debug("Writing to config file...")
-			with open(os.path.join(S3.module_dir, "config.json"), "w") as file:
+			with open(os.path.join(module_dir, "config.json"), "w") as file:
 				json.dump(contents, file, indent='\t', separators=(',',' : '))
 			Worker._logger.debug("Config file written successfully")
 		except:
@@ -222,7 +222,9 @@ class Worker():
 		Converts the regular data file into a minified version that the website can parse easily
 		
 		Parameters:
-		- contents (list): The list of video dicts read from the regular data file
+		- contents (list): The list of video dicts read from the normal data file
+
+		Returns (str): The minified data file as a JSON string
 		"""
 		min_data = []
 		
@@ -278,15 +280,8 @@ class Worker():
 			}
 			min_data.append(data)
 
-		# Write data to file
-		try:
-			Worker._logger.debug("Writing minified data file...")
-			with open(os.path.join(S3.module_dir, S3.min_file_name), "w") as file:
-				json.dump(min_data, file, separators=(',', ':'))
-			Worker._logger.debug("Successfully wrote minified data file")
-		except:
-			Worker._logger.error("Failed to write minified data file")
-			raise
+		# Return JSON data as string
+		return json.dumps(min_data, separators=(',', ':'))
 
 
 	@staticmethod
@@ -338,14 +333,11 @@ class Worker():
 			# Update the file if any changes were made
 			try:
 				Worker._logger.debug("Updating data file")
-				filepath = os.path.join(S3.module_dir, S3.data_file_name)
-				with open(filepath, 'w') as file:
-					json.dump(current_data, file, indent='\t', separators=(',',' : '))
+				data = json.dump(current_data, indent='\t', separators=(',',' : '))
+				S3.put_data(S3.data_file_path, data)
 				Worker._logger.debug("Data file updated successfully")
 			except:
 				Worker._logger.error("Failed to update data file")
 				raise
 
 			notifications.clear()
-			S3.put_data(S3.data_file_name)
-			Worker._last_modified = int(os.path.getmtime(filepath))
