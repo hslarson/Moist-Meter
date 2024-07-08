@@ -3,7 +3,6 @@
 import logging
 import boto3
 import json
-import os
 
 
 class S3():
@@ -91,9 +90,9 @@ class S3():
 				ContentType='application/json'
 			)
 			# TODO: Check response?
-			S3._logger.debug(f"File uploaded successfully. Response={response}")
+			S3._logger.debug(f"File uploaded successfully")
 		except:
-			S3._logger.error("Failed to upload file to S3")
+			S3._logger.error(f"Failed to upload file to S3")
 			raise
 
 
@@ -114,13 +113,13 @@ class S3():
 				Bucket=S3._bucket_name, 
 				Key=S3.data_file_path
 			)
-			S3._logger.debug(f"Data downloaded successfully. Response={response}")
+			S3._logger.debug(f"Data downloaded successfully")
 
 			# Read and decode the contents of the file
 			file_content = response['Body'].read().decode('utf-8')
 			return list(json.loads(file_content))
 		except:
-			S3._logger.error("Failed to load data file from S3")
+			S3._logger.error(f"Failed to load data file from S3")
 			raise
 
 
@@ -142,10 +141,10 @@ class S3():
 				Bucket=S3._bucket_name, 
 				Key=remote_path
 			)
-			S3._logger.debug(f"Got header. Response={response}")
+			S3._logger.debug(f"Got timestamp: {int(response['LastModified'].timestamp())}")
 
 			# TODO: Check response?
 			return int(response['LastModified'].timestamp())
 		except:
-			S3._logger.error("Failed to read last modified timestamp")
+			S3._logger.error(f"Failed to read last modified timestamp")
 			raise

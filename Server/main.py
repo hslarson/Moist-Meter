@@ -38,6 +38,9 @@ logger = logging.getLogger()
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)
 
+# Make urllib3 shut up
+logging.getLogger("urllib3.connectionpool").setLevel(logging.INFO)
+
 with open(logs_file, 'a') as file:
 	file.write("\n" + '-'*64 + "\n\n")
 logger.info("Session Started. Welcome!")
