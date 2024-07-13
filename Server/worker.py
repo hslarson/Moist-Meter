@@ -232,6 +232,13 @@ class Worker():
 			# Skip unrated videos
 			if not obj["rated"]: continue
 
+			# Create title string 
+			# with optional alternate URL
+			vid = Video.from_dict(obj)
+			title_str = vid.short_title() + "%%%" + vid.id
+			if "url" in obj:
+				title_str += "%%%" + str(obj["url"])
+
 			# Construct the score string
 			# - 3 numeric characters for score. 000 if score has alpha characters
 			# - ? characters for text. Usually "N/A" if anything
@@ -270,12 +277,11 @@ class Worker():
 				score_str += "10"
 
 			# Create video dictionary and add it to the array
-			vid = Video.from_dict(obj)
 			data = {
 				"num" : len(contents) - idx,
 				"date" : vid.date,
 				"category" : obj["category"],
-				"title_id" : vid.short_title() + "%%%" + vid.id,
+				"title_id" : title_str,
 				"score" : score_str
 			}
 			min_data.append(data)
