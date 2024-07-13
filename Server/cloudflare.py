@@ -49,7 +49,10 @@ class CloudFlare():
 		}
 
 		# Request payload
-		data = {"files" : [f"https://moistmeter.com/{S3.min_file_path}"]}
+		data = {"files" : [
+			f"https://moistmeter.org/{S3.min_file_path}",
+			f"https://www.moistmeter.org/{S3.min_file_path}",
+		]}
 
 		# Request URL
 		url = f"https://api.cloudflare.com/client/v4/zones/{CloudFlare._zone}/purge_cache/"
