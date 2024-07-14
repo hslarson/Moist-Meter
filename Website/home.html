@@ -99,35 +99,37 @@
 
 	<!-- Loads Data JSON and Creates Table -->
 	<script>
-		/* Generate the Main Table */
-		$(async function() {
-			$.ajax({
-				url: "./table-data/data-min.json",
-				type: 'get',
-				success: async function (d, t, xhr) {
-					/* console.log("Success: "); console.log(d); */
-					$('#table').bootstrapTable({ data: d });
-				},
-				error: async function (req, err) {
-					/* console.log("Error: " + err) */;
-				}
-			});
+		/* Fetch table data */
+		fetch('./table-data/data-min.json', {
+  			method: 'GET',
+  			cache: 'default',
+		}).then(response => {
+			if (response.ok) {
+				return response.json();
+			}
+		}).then(data => {
+			/* Generate main table */
+			/* console.log("Success: "); console.log(data); */
+			$('#table').bootstrapTable({ data: data });
+		}).catch(error => {
+  			console.error('Error fetching table data:', error);
 		});
 		
-		/* Get random quote */
-		$(async function() {
-			$.ajax({
-				url: "./table-data/quotes.json",
-				type: 'get',
-				success: async function (d, t, xhr) {
-					/* console.log("Success: "); console.log(d); */
-					var rand_idx = Math.floor(Math.random() * d.length);
-					$("#quote").html("<em>" + String(d[rand_idx]) + "</em>");
-				},
-				error: async function (req, err) {
-					/* console.log("Error: " + err) */;
-				}
-			});
+		/* Fetch quotes list */
+		fetch("./table-data/quotes.json", {
+  			method: 'GET',
+  			cache: 'default',
+		}).then(response => {
+			if (response.ok) {
+				return response.json();
+			}
+		}).then(data => {
+			/* Choose a random quote */
+			/* console.log("Success: "); console.log(data); */
+			var rand_idx = Math.floor(Math.random() * data.length);
+			$("#quote").html("<em>" + String(data[rand_idx]) + "</em>");
+		}).catch(error => {
+  			console.error('Error fetching quote:', error);
 		});
 
 		/* Activate Tooltips */
